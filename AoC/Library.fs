@@ -6,18 +6,17 @@ open System.Net.Http
 open System
 
 module Magic =
-    let root =
-        Environment.CurrentDirectory |> DirectoryInfo
 
     let aocRoot =
-        root
+        Environment.CurrentDirectory
+        |> DirectoryInfo
         |> Seq.unfold
             (fun dir ->
                 if dir = dir.Root then
                     None
                 else
                     Some(dir, dir.Parent))
-        |> Seq.find (fun dir -> dir.Name.EndsWith("AoC2021"))
+        |> Seq.find (fun dir -> dir.Name.StartsWith("AoC"))
 
     let cookie () =
         [| aocRoot.FullName; "cookie.txt" |]
