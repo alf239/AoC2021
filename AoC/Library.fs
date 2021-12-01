@@ -55,7 +55,8 @@ module Magic =
 
         File.ReadAllText target
 
-    let asSingleInts (input: string) =
+    let asStrings (input: string) =
         input.Split('\n')
         |> Seq.filter (fun s -> (String.length s) > 0)
-        |> Seq.map int
+
+    let asSingleInts = asStrings >> Seq.map int

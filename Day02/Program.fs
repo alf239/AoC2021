@@ -1,2 +1,7 @@
+open AoC.Magic
 
-printfn "Hello from day 2"
+let input = taskInput 2021 2 |> asStrings
+
+let increases = fun xs -> "hi"
+
+printfn $"Day 2.1: {increases input}"
