@@ -1,8 +1,9 @@
-open System.IO
+open AoC.Magic
 
 [<EntryPoint>]
-let main args =
-    let input = File.ReadLines args.[0] |> Seq.map int
+let main _ =
+
+    let input = taskInput 2021 1 |> asSingleInts
 
     let increases =
         Seq.windowed 2
@@ -11,11 +12,9 @@ let main args =
 
     printfn $"Day 1.1: {increases input}"
 
-    let dx =
-        input
-        |> Seq.windowed 3
-        |> Seq.map Array.sum
+    let slidingSum =
+        input |> Seq.windowed 3 |> Seq.map Array.sum
 
-    printfn $"Day 1.2: {increases dx}"
+    printfn $"Day 1.2: {increases slidingSum}"
 
     0
