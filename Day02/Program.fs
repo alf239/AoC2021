@@ -16,7 +16,8 @@ let x, y =
             match cmd with
             | "forward", n -> x + n, y
             | "down", n -> x, y + n
-            | "up", n -> x, y - n) (0, 0)
+            | "up", n -> x, y - n)
+        (0, 0)
 
 printfn $"Day 2.1: {x * y}"
 
@@ -27,6 +28,7 @@ let x2, y2, aim =
             match cmd with
             | "forward", n -> x + n, y + aim * n, aim
             | "down", n -> x, y, aim + n
-            | "up", n -> x, y, aim - n) (0, 0, 0)
+            | "up", n -> x, y, aim - n)
+        (0, 0, 0)
 
 printfn $"Day 2.2: {x2 * y2}"
