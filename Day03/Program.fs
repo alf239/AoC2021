@@ -1,4 +1,3 @@
-open System.Collections.Generic
 open AoC.Magic
 open System
 
@@ -47,7 +46,16 @@ let task1 (input: string seq) =
     let y = x ^^^ mask
     x * y
 
-let count p xs = xs |> Seq.filter p |> Seq.length
+let count p = Seq.filter p >> Seq.length
+
+let bit m k x =
+    let mask = 1 <<< (m - 1 - k)
+    (x &&& mask) <> 0
+
+let mcb m k xs =
+    let n = Seq.length xs
+    let c = xs |> count (bit m k)
+    c * 2 >= n
 
 let task2 (input: string seq) =
     let m = input |> Seq.head |> String.length
@@ -57,23 +65,14 @@ let task2 (input: string seq) =
         |> Seq.map (fun s -> Convert.ToInt32(s, 2))
         |> Seq.toArray
 
-    let mcb k xs =
-        let n = Seq.length xs
-        let mask = 1 <<< (m - 1 - k)
-        let c = xs |> count (fun x -> (x &&& mask) <> 0)
-        c * 2 >= n
-
     let filter k v xs =
-        let mask = 1 <<< (m - 1 - k)
-
-        xs
-        |> Array.filter (fun x -> ((x &&& mask) <> 0) = v)
+        xs |> Array.filter (bit m k >> fun x -> x = v)
 
     let rec rating (b: bool) k xs =
         if Array.length xs = 1 then
             Array.head xs
         else
-            let v = mcb k xs = b
+            let v = mcb m k xs = b
             let filtered = filter k v xs
             rating b (k + 1) filtered
 
