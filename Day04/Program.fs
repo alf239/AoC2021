@@ -28,9 +28,7 @@ let read (ss: string list) : Board =
 
     { Board = board }
 
-let bs =
-    boards
-    |> List.map read
+let bs = boards |> List.map read
 
 type PreparedBoard =
     { Wins: int Set list
@@ -63,25 +61,34 @@ let partialScore ns board =
     else
         None
 
+let wins (drawn: int list) (boards: Board list) =
+    let bs =
+        boards |> List.map prepare |> List.indexed
+
+    drawn
+    |> Seq.scan<int, int * int Set> (fun (_, acc) n -> (n, Set.add n acc)) (-1, Set.empty)
+    |> Seq.map
+        (fun (n, ns) ->
+            bs
+            |> List.choose (fun (i, b) -> partialScore ns b |> Option.map (fun x -> i, x))
+            |> List.map (fun (i, s) -> (i, s * n)))
 
 let step1 (drawn: int list) (boards: Board list) =
-    let bs = boards |> List.map prepare
+    wins drawn boards
+    |> Seq.find (fun l -> not (List.isEmpty l))
 
-    let wins =
-        drawn
-        |> Seq.scan<int, int * int Set> (fun (_, acc) n -> (n, Set.add n acc)) (-1, Set.empty)
-        |> Seq.map
-            (fun (n, ns) ->
-                bs
-                |> List.choose (partialScore ns)
-                |> List.map (fun s -> s * n))
-
-    wins |> Seq.find (fun l -> not (List.isEmpty l))
-
+let step2 (drawn: int list) (boards: Board list) =
+    wins drawn boards
+    |> Seq.windowed 2
+    |> Seq.filter (fun [| a ; b |] -> (List.length a) <> (List.length b))
+    |> Seq.last           
 
 let task1 (drawn: int list) (boards: Board list) = step1 drawn boards |> Seq.head
 
-let task2 (drawn: int list) (boards: Board list) = -2
+let task2 (drawn: int list) (boards: Board list) =
+    let [| before ; after |] = step2 drawn boards
+    let prev = before |> List.map fst |> Set.ofList
+    after |> List.filter (fun (b, _) -> not (Set.contains b prev)) 
 
 printfn $"Day 4.1: {task1 drawn bs}"
 printfn $"Day 4.2: {task2 drawn bs}"
