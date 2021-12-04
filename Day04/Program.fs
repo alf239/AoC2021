@@ -5,11 +5,7 @@ let rawInput = if forReal then taskInput 2021 4 else ""
 let input = rawInput |> nonEmptyLines |> Seq.toList
 
 let drawn =
-    input
-    |> Seq.head
-    |> (fun s -> s.Split(','))
-    |> Seq.map int
-    |> Seq.toList
+    input |> Seq.head |> csInts |> Seq.toList
 
 let boards = input |> List.tail |> List.chunkBySize 5
 
@@ -19,11 +15,7 @@ let read (ss: string list) : Board =
     let board =
         ss
         |> List.filter nonEmptyString
-        |> Seq.map
-            (fun s ->
-                s.Split(' ')
-                |> Array.filter nonEmptyString
-                |> Array.map int)
+        |> Seq.map ints
         |> Seq.toArray
 
     { Board = board }

@@ -56,8 +56,14 @@ module Magic =
 
     let nonEmptyString s = s <> ""
 
-    let asLines (s: string) = s.Split('\n')
+    let lines (s: string) = s.Split('\n')
+    
+    let words (s: string) = s.Split(' ') |> Array.filter nonEmptyString
+    
+    let ints = words >> Array.map int
+    
+    let csInts (s: string) = s.Split(',') |> Array.map int
 
-    let nonEmptyLines = asLines >> Seq.filter nonEmptyString
+    let nonEmptyLines = lines >> Seq.filter nonEmptyString
 
     let asSingleInts = nonEmptyLines >> Seq.map int
