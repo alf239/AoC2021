@@ -19,7 +19,7 @@ let input =
              11001\n\
              00010\n\
              01010"
-    |> asStrings
+    |> nonEmptyLines
     |> Seq.toList
 
 let task1 (input: string seq) =

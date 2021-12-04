@@ -1,6 +1,6 @@
 open AoC.Magic
 
-let input = taskInput 2021 2 |> asStrings
+let input = taskInput 2021 2 |> nonEmptyLines
 
 let commands =
     input

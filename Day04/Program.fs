@@ -2,7 +2,7 @@ open AoC.Magic
 
 let forReal = true
 let rawInput = if forReal then taskInput 2021 4 else ""
-let input = rawInput |> asStrings |> Seq.toList
+let input = rawInput |> nonEmptyLines |> Seq.toList
 
 let drawn =
     input
@@ -18,11 +18,11 @@ type Board = { Board: int array array }
 let read (ss: string list) : Board =
     let board =
         ss
-        |> List.filter (fun s -> s <> "")
+        |> List.filter nonEmptyString
         |> Seq.map
             (fun s ->
                 s.Split(' ')
-                |> Array.filter (fun s -> s <> "")
+                |> Array.filter nonEmptyString
                 |> Array.map int)
         |> Seq.toArray
 
@@ -56,10 +56,9 @@ let prepare (b: Board) =
 let partialScore ns board =
     let { Wins = wins; Numbers = nrs } = board
 
-    if wins |> List.exists (Set.isSuperset ns) then
-        Set.difference nrs ns |> Seq.sum |> Some
-    else
-        None
+    wins
+    |> List.tryFind (Set.isSuperset ns)
+    |> Option.map (fun _ -> Set.difference nrs ns |> Seq.sum)
 
 let wins (drawn: int list) (boards: Board list) =
     let bs =
@@ -73,22 +72,22 @@ let wins (drawn: int list) (boards: Board list) =
             |> List.choose (fun (i, b) -> partialScore ns b |> Option.map (fun x -> i, x))
             |> List.map (fun (i, s) -> (i, s * n)))
 
-let step1 (drawn: int list) (boards: Board list) =
+let task1 (drawn: int list) (boards: Board list) =
     wins drawn boards
     |> Seq.find (fun l -> not (List.isEmpty l))
-
-let step2 (drawn: int list) (boards: Board list) =
-    wins drawn boards
-    |> Seq.windowed 2
-    |> Seq.filter (fun [| a ; b |] -> (List.length a) <> (List.length b))
-    |> Seq.last           
-
-let task1 (drawn: int list) (boards: Board list) = step1 drawn boards |> Seq.head
+    |> Seq.head
 
 let task2 (drawn: int list) (boards: Board list) =
-    let [| before ; after |] = step2 drawn boards
+    let [| before; after |] =
+        wins drawn boards
+        |> Seq.windowed 2
+        |> Seq.filter (fun [| a; b |] -> (List.length a) <> (List.length b))
+        |> Seq.last
+
     let prev = before |> List.map fst |> Set.ofList
-    after |> List.filter (fun (b, _) -> not (Set.contains b prev)) 
+
+    after
+    |> List.filter (fun (b, _) -> prev |> Set.contains b |> not)
 
 printfn $"Day 4.1: {task1 drawn bs}"
 printfn $"Day 4.2: {task2 drawn bs}"
