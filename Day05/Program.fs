@@ -1,7 +1,7 @@
 open AoC.Magic
 
 let forReal = true
-let rawInput = if forReal then taskInput 2021 4 else ""
+let rawInput = if forReal then taskInput 2021 5 else ""
 let input = rawInput |> nonEmptyLines |> Seq.toList
 
 let task1 ss = -1
