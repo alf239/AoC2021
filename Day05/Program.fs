@@ -36,8 +36,8 @@ let dots ((x1, y1), (x2, y2)) =
 let overlaps =
     Seq.collect dots
     >> Seq.groupBy id
-    >> Seq.map snd
-    >> Seq.filter (Seq.length >> (fun l -> l > 1))
+    >> Seq.map (snd >> Seq.length) 
+    >> Seq.filter (fun l -> l > 1)
     >> Seq.length
 
 let task1 ls =
