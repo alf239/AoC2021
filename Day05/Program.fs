@@ -1,3 +1,4 @@
+open System
 open AoC.Magic
 
 let forReal = true
@@ -27,23 +28,31 @@ let parse s =
 
 let ls = input |> Seq.map parse
 
+let maxX =
+    ls
+    |> Seq.collect (fun ((x1, y1), (x2, y2)) -> [ x1; x2 ])
+    |> Seq.max
+
+let maxY =
+    ls
+    |> Seq.collect (fun ((x1, y1), (x2, y2)) -> [ y1; y2 ])
+    |> Seq.max
+
+let overlaps map =
+    map
+    |> Seq.ofArray
+    |> Seq.collect Seq.ofArray
+    |> Seq.filter (fun c -> c > 1)
+    |> Seq.length
+
+
 let task1 ls =
     let horVer =
         ls
         |> Seq.filter (fun ((x1, y1), (x2, y2)) -> x1 = x2 || y1 = y2)
 
-    let maxX =
-        horVer
-        |> Seq.collect (fun ((x1, y1), (x2, y2)) -> [ x1; x2 ])
-        |> Seq.max
-
-    let maxY =
-        horVer
-        |> Seq.collect (fun ((x1, y1), (x2, y2)) -> [ y1; y2 ])
-        |> Seq.max
-
     let map =
-        [| for x in 0 .. maxX -> [| for y in 0 .. maxY -> 0 |] |]
+        [| for _ in 0 .. maxX -> [| for _ in 0 .. maxY -> 0 |] |]
 
     for (x1, y1), (x2, y2) in horVer do
         if x1 = x2 then
@@ -53,13 +62,25 @@ let task1 ls =
             for x in (min x1 x2) .. (max x1 x2) do
                 map.[x].[y1] <- map.[x].[y1] + 1
 
-    map
-    |> Seq.ofArray
-    |> Seq.collect Seq.ofArray
-    |> Seq.filter (fun c -> c > 1)
-    |> Seq.length
+    overlaps map
 
-let task2 ss = -2
+let task2 ls = 
+    let map =
+        [| for _ in 0 .. maxX -> [| for _ in 0 .. maxY -> 0 |] |]
+    
+    for (x1, y1), (x2, y2) in ls do
+        let len = max (abs (x2 - x1)) (abs (y2 - y1))
+        let dx = sign (x2 - x1)  
+        let dy = sign (y2 - y1)
+        let mutable x = x1
+        let mutable y = y1
+        for _ in 0 .. len do 
+            map.[x].[y] <- map.[x].[y] + 1
+            x <- x + dx
+            y <- y + dy
+        ignore 1
+
+    overlaps map
 
 printfn $"Day 5.1: {task1 ls}"
-printfn $"Day 5.2: {task2 input}"
+printfn $"Day 5.2: {task2 ls}"
