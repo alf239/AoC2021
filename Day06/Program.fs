@@ -11,5 +11,5 @@ let task1 ls = -1
 
 let task2 ls = -2
 
-printfn $"Day 5.1: {task1 input}"
-printfn $"Day 5.2: {task2 input}"
+printfn $"Day 6.1: {task1 input}"
+printfn $"Day 6.2: {task2 input}"
