@@ -10,38 +10,14 @@ let rawInput =
 
 let input = rawInput |> nonEmptyLines |> Seq.toList
 
-
-let task1 ls =
-    let N = 2_000_000
-    let ts = [| for _ in 1 .. N -> -1 |]
-    let ages = ls |> Seq.head |> csInts
-    let mutable n = ages |> Array.length
-
-    for i, x in ages |> Array.indexed do
-        ts.[i] <- x
-
-    for day in 1 .. 80 do
-        let watermark = n - 1
-
-        for i in 0 .. watermark do
-            match ts.[i] with
-            | 0 ->
-                ts.[i] <- 6
-                ts.[n] <- 8
-                n <- n + 1
-            | x -> ts.[i] <- x - 1
-
-    n
-
-let task2 ls =
+let task ages days =
     let ts = [| for _ in 0 .. 8 -> 0L |]
-    let t = [| for x in ts -> 0L |]
-    let ages = ls |> Seq.head |> csInts
+    let t = [| for _ in ts -> 0L |]
 
     for x in ages do
         ts.[x] <- ts.[x] + 1L
 
-    for day in 1 .. 256 do
+    for day in 1 .. days do
         for i in 0 .. 7 do
             t.[i] <- ts.[i + 1]
 
@@ -53,6 +29,7 @@ let task2 ls =
 
     ts |> Array.sum
 
+let ages = input |> Seq.head |> csInts
 
-printfn $"Day 6.1: {task1 input}"
-printfn $"Day 6.2: {task2 input}"
+printfn $"Day 6.1: {task ages 80}"
+printfn $"Day 6.2: {task ages 256}"
