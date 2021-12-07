@@ -13,15 +13,12 @@ let cost2 (x: int) (y: int) : int =
     let l = abs (x - y)
     l * (l + 1) / 2
 
-let task (fuel: int -> int -> int) (data: int []) : int =
-    let mn = data |> Array.min
-    let mx = data |> Array.max
+let task (fuel: int -> int -> int) (data: int seq) : int =
+    let mn = data |> Seq.min
+    let mx = data |> Seq.max
 
-    let sums =
-        seq { for i in mn .. mx -> data |> Array.toSeq |> Seq.map (fuel i) |> Seq.sum }
-        |> Seq.toArray
-
-    sums |> Array.min
+    seq { for i in mn .. mx -> data |> Seq.map (fuel i) |> Seq.sum }
+    |> Seq.min
 
 let task1 data = task cost1 data
 
