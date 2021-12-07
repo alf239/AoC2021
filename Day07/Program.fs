@@ -7,18 +7,18 @@ let testAnswer2 = 168
 
 let parse = csInts
 
-let cost1 (x: int) (y: int): int = abs (x - y)
+let cost1 (x: int) (y: int) : int = abs (x - y)
 
-let cost2 (x: int) (y: int): int =
+let cost2 (x: int) (y: int) : int =
     let l = abs (x - y)
     l * (l + 1) / 2
 
-let task (fn: int -> int -> int) (data: int[]): int =
+let task (fuel: int -> int -> int) (data: int []) : int =
     let mn = data |> Array.min
     let mx = data |> Array.max
 
     let sums =
-        seq { for i in mn .. mx -> data |> Array.toSeq |> Seq.map (fn i) |> Seq.sum }
+        seq { for i in mn .. mx -> data |> Array.toSeq |> Seq.map (fuel i) |> Seq.sum }
         |> Seq.toArray
 
     sums |> Array.min
