@@ -1,6 +1,6 @@
 open AoC.Magic
 
-let realInput = taskInput 2021 8
+let realInput = taskInput 2021 9
 
 let testInput = ""
 
