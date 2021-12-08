@@ -1,15 +1,116 @@
 open AoC.Magic
 
 let realInput = taskInput 2021 8
-let testInput = "1"
-let testAnswer1 = -1
-let testAnswer2 = -2
 
-let parse = csInts
+let testInput =
+    "be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb |\
+fdgacbe cefdb cefbgd gcbe\n\
+edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec |\
+fcgedb cgb dgebacf gc\n\
+fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef |\
+cg cg fdcagb cbg\n\
+fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega |\
+efabcd cedba gadfec cb\n\
+aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga |\
+gecf egdcabf bgf bfgea\n\
+fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf |\
+gebdcfa ecba ca fadegcb\n\
+dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf |\
+cefg dcbef fcge gbcadfe\n\
+bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd |\
+ed bcgafe cdgba cbgef\n\
+egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg |\
+gbdfcae bgc cg cgb\n\
+gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc |\
+fgae cfgab fg bagce"
 
-let task1 data = -1
+let testAnswer1 = 26
+let testAnswer2 = 61229
 
-let task2 data = -2
+let parseLine (s: string) =
+    let [| input; output |] = s.Split('|')
+    let ins = words input
+    let outs = words output
+    ins, outs
+
+let parse = nonEmptyLines >> Seq.map parseLine
+
+let lengthIn (ls: int list) (s: string) =
+    let l = s |> String.length
+    List.contains l ls
+
+let task1 data =
+    data
+    |> Seq.map snd
+    |> Seq.collect (Array.filter (lengthIn [ 2; 3; 4; 7 ]))
+    |> Seq.length
+
+let key ins =
+    let all: Set<Set<char>> = ins |> Seq.map Set.ofSeq |> Set.ofSeq
+
+    let _1 =
+        ins |> Seq.find (lengthIn [ 2 ]) |> Set.ofSeq
+
+    let _7 =
+        ins |> Seq.find (lengthIn [ 3 ]) |> Set.ofSeq
+
+    let _4 =
+        ins |> Seq.find (lengthIn [ 4 ]) |> Set.ofSeq
+
+    let _8 =
+        ins |> Seq.find (lengthIn [ 7 ]) |> Set.ofSeq
+
+    let _1478 = [ _1; _4; _7; _8 ] |> Set.ofList
+
+    let _023569 = Set.difference all _1478
+    let _039 = _023569 |> Set.filter (Set.isSubset _1)
+    let _9 = Seq.find (Set.isSubset _4) _039
+    let _03 = Set.remove _9 _039
+
+    let _3 =
+        Seq.find (fun x -> (x |> Set.count) = 5) _03
+
+    let _0 =
+        Seq.find (fun x -> (x |> Set.count) = 6) _03
+
+    let _256 = Set.difference _023569 _039
+
+    let _6 =
+        Seq.find (fun x -> (x |> Set.count) = 6) _256
+
+    let _25 = Set.remove _6 _256
+
+    let _2 =
+        _25
+        |> Seq.find (Set.intersect _4 >> (fun s -> Set.count s = 2))
+
+    let _5 =
+        _25
+        |> Seq.find (Set.intersect _4 >> (fun s -> Set.count s = 3))
+
+    Map.ofList [
+        (_0, 0)
+        (_1, 1)
+        (_2, 2)
+        (_3, 3)
+        (_4, 4)
+        (_5, 5)
+        (_6, 6)
+        (_7, 7)
+        (_8, 8)
+        (_9, 9)
+    ]
+
+let decode (input, output) =
+    let k = key input
+    output
+    |> Seq.map (fun x -> Map.find (Set.ofSeq x) k)
+    |> Seq.fold (fun acc x -> acc * 10 + x) 0
+
+let task2 data =
+    data
+    |> Seq.map decode
+    |> Seq.sum
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
