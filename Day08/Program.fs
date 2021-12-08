@@ -39,6 +39,8 @@ let lengthIn (ls: int list) (s: string) =
     let l = s |> String.length
     List.contains l ls
 
+let ofSize (l: int) = Set.count >> (fun x -> x = l)
+
 let task1 data =
     data
     |> Seq.map snd
@@ -48,69 +50,46 @@ let task1 data =
 let key ins =
     let all: Set<Set<char>> = ins |> Seq.map Set.ofSeq |> Set.ofSeq
 
-    let _1 =
-        ins |> Seq.find (lengthIn [ 2 ]) |> Set.ofSeq
-
-    let _7 =
-        ins |> Seq.find (lengthIn [ 3 ]) |> Set.ofSeq
-
-    let _4 =
-        ins |> Seq.find (lengthIn [ 4 ]) |> Set.ofSeq
-
-    let _8 =
-        ins |> Seq.find (lengthIn [ 7 ]) |> Set.ofSeq
-
+    let _1 = all |> Seq.find (ofSize 2)
+    let _7 = all |> Seq.find (ofSize 3)
+    let _4 = all |> Seq.find (ofSize 4)
+    let _8 = all |> Seq.find (ofSize 7)
     let _1478 = [ _1; _4; _7; _8 ] |> Set.ofList
-
     let _023569 = Set.difference all _1478
     let _039 = _023569 |> Set.filter (Set.isSubset _1)
     let _9 = Seq.find (Set.isSubset _4) _039
     let _03 = Set.remove _9 _039
-
-    let _3 =
-        Seq.find (fun x -> (x |> Set.count) = 5) _03
-
-    let _0 =
-        Seq.find (fun x -> (x |> Set.count) = 6) _03
-
+    let _3 = _03 |> Seq.find (ofSize 5)
+    let _0 = _03 |> Seq.find (ofSize 6)
     let _256 = Set.difference _023569 _039
-
-    let _6 =
-        Seq.find (fun x -> (x |> Set.count) = 6) _256
-
+    let _6 = _256 |> Seq.find (ofSize 6)
     let _25 = Set.remove _6 _256
 
     let _2 =
-        _25
-        |> Seq.find (Set.intersect _4 >> (fun s -> Set.count s = 2))
+        _25 |> Seq.find (Set.intersect _4 >> ofSize 2)
 
     let _5 =
-        _25
-        |> Seq.find (Set.intersect _4 >> (fun s -> Set.count s = 3))
+        _25 |> Seq.find (Set.intersect _4 >> ofSize 3)
 
-    Map.ofList [
-        (_0, 0)
-        (_1, 1)
-        (_2, 2)
-        (_3, 3)
-        (_4, 4)
-        (_5, 5)
-        (_6, 6)
-        (_7, 7)
-        (_8, 8)
-        (_9, 9)
-    ]
+    Map.ofList [ (_0, 0)
+                 (_1, 1)
+                 (_2, 2)
+                 (_3, 3)
+                 (_4, 4)
+                 (_5, 5)
+                 (_6, 6)
+                 (_7, 7)
+                 (_8, 8)
+                 (_9, 9) ]
 
 let decode (input, output) =
     let k = key input
+
     output
     |> Seq.map (fun x -> Map.find (Set.ofSeq x) k)
     |> Seq.fold (fun acc x -> acc * 10 + x) 0
 
-let task2 data =
-    data
-    |> Seq.map decode
-    |> Seq.sum
+let task2 data = data |> Seq.map decode |> Seq.sum
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
