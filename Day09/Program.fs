@@ -24,7 +24,7 @@ let isLowest (data: int [] []) x y =
     let u = if y = 0 then 10 else data.[x].[y - 1]
 
     let d =
-        if y = Array.length (Array.head data) - 1 then
+        if y = Array.length data.[0] - 1 then
             10
         else
             data.[x].[y + 1]
@@ -49,7 +49,7 @@ let task data fn =
                     yield fn data x y
     }
 
-let dfs (data: int [] []) x y =
+let bfs (data: int [] []) x y =
     let seen = HashSet()
     let work = Queue()
     work.Enqueue(x, y)
@@ -79,11 +79,17 @@ let dfs (data: int [] []) x y =
     cnt
 
 
-let task1 data = task data (fun d x y -> d.[x].[y] + 1) |> Seq.sum
+let task1 data =
+    task data (fun d x y -> d.[x].[y] + 1) |> Seq.sum
 
-let task2 data = 
-    let sizes = task data dfs
-    sizes |> Seq.sort |> Seq.rev |> Seq.take 3 |> Seq.fold (fun acc x -> acc * x) 1
+let task2 data =
+    let sizes = task data bfs
+
+    sizes
+    |> Seq.sort
+    |> Seq.rev
+    |> Seq.take 3
+    |> Seq.fold (fun acc x -> acc * x) 1
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
