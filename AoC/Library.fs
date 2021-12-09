@@ -70,18 +70,37 @@ module Magic =
 
     let asSingleInts = nonEmptyLines >> Seq.map int
 
-    let bfs<'a> (next: 'a -> 'a seq) seed =
+    let search<'a>
+        (plan: 'a -> unit)
+        (next: unit -> 'a)
+        (hasWork: unit -> bool)
+        (gen: 'a -> 'a seq option)
+        (seed: 'a)
+        : 'a seq =
         let seen = HashSet()
+        plan seed
+
+        seq {
+            while hasWork () do
+                let item: 'a = next ()
+
+                if not <| seen.Contains(item) then
+                    seen.Add(item) |> ignore
+
+                    match gen item with
+                    | Some items ->
+                        yield item
+
+                        for i in items do
+                            plan i
+                    | None -> ()
+        }
+
+
+    let bfs<'a> (gen: 'a -> 'a seq option) (seed: 'a) : 'a seq =
         let work = Queue()
-        work.Enqueue seed
+        search work.Enqueue work.Dequeue (fun () -> work.Count > 0) gen seed
 
-        while work.Count > 0 do
-            let item = work.Dequeue()
-
-            if not <| seen.Contains(item) then
-                seen.Add(item) |> ignore
-
-                for i in next item do
-                    work.Enqueue i
-
-        ()
+    let dfs<'a> (gen: 'a -> 'a seq option) (seed: 'a) : 'a seq =
+        let work = Stack()
+        search work.Push work.Pop (fun () -> work.Count > 0) gen seed

@@ -1,4 +1,3 @@
-open System.Collections.Generic
 open AoC.Magic
 
 let realInput = taskInput 2021 9
@@ -52,7 +51,7 @@ let task1 data =
     task data (fun x y -> data.[x].[y] + 1) |> Seq.sum
 
 let task2 data =
-    let border x y =
+    let border (x, y) =
         (x = -1)
         || (y = -1)
         || (x = Array.length data)
@@ -60,24 +59,19 @@ let task2 data =
         || (data.[x].[y] = 9)
 
     let basinSize x y =
-        let mutable cnt = 0
-
-        bfs
+        dfs
             (fun (a, b) ->
-                if not <| border a b then
-                    cnt <- cnt + 1
-
-                    seq {
+                if not <| border (a, b) then
+                    Some <| seq {
                         (a - 1, b)
                         (a, b - 1)
                         (a + 1, b)
                         (a, b + 1)
                     }
                 else
-                    Seq.empty)
+                    None)
             (x, y)
-
-        cnt
+        |> Seq.length
 
     let sizes = task data basinSize
 
