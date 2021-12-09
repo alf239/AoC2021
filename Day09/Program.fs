@@ -45,45 +45,41 @@ let task data fn =
     seq {
         for y in 0 .. Array.length (Array.head data) - 1 do
             for x in 0 .. Array.length data - 1 do
-                if isLowest data x y then
-                    yield fn data x y
+                if isLowest data x y then yield fn x y
     }
 
-let bfs (data: int [] []) x y =
-    let seen = HashSet()
-    let work = Queue()
-    work.Enqueue(x, y)
-    let mutable cnt = 0
-
-    while work.Count > 0 do
-        let a, b = work.Dequeue()
-
-        if not <| seen.Contains((a, b)) then
-            seen.Add((a, b)) |> ignore
-
-            let border =
-                (a = -1)
-                || (b = -1)
-                || (a = Array.length data)
-                || (b = Array.length data.[0])
-                || (data.[a].[b] = 9)
-
-            if not border then
-                cnt <- cnt + 1
-
-                work.Enqueue((a - 1, b))
-                work.Enqueue((a, b - 1))
-                work.Enqueue((a + 1, b))
-                work.Enqueue((a, b + 1))
-
-    cnt
-
-
 let task1 data =
-    task data (fun d x y -> d.[x].[y] + 1) |> Seq.sum
+    task data (fun x y -> data.[x].[y] + 1) |> Seq.sum
 
 let task2 data =
-    let sizes = task data bfs
+    let border x y =
+        (x = -1)
+        || (y = -1)
+        || (x = Array.length data)
+        || (y = Array.length data.[0])
+        || (data.[x].[y] = 9)
+
+    let basinSize x y =
+        let mutable cnt = 0
+
+        bfs
+            (fun (a, b) ->
+                if not <| border a b then
+                    cnt <- cnt + 1
+
+                    seq {
+                        (a - 1, b)
+                        (a, b - 1)
+                        (a + 1, b)
+                        (a, b + 1)
+                    }
+                else
+                    Seq.empty)
+            (x, y)
+
+        cnt
+
+    let sizes = task data basinSize
 
     sizes
     |> Seq.sort

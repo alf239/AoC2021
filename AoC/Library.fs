@@ -1,5 +1,6 @@
 ﻿namespace AoC
 
+open System.Collections.Generic
 open System.IO
 open FSharp.Control.Tasks
 open System.Net.Http
@@ -57,13 +58,30 @@ module Magic =
     let nonEmptyString s = s <> ""
 
     let lines (s: string) = s.Split('\n')
-    
-    let words (s: string) = s.Split(' ') |> Array.filter nonEmptyString
-    
+
+    let words (s: string) =
+        s.Split(' ') |> Array.filter nonEmptyString
+
     let ints = words >> Array.map int
-    
+
     let csInts (s: string) = s.Split(',') |> Array.map int
 
     let nonEmptyLines = lines >> Seq.filter nonEmptyString
 
     let asSingleInts = nonEmptyLines >> Seq.map int
+
+    let bfs<'a> (next: 'a -> 'a seq) seed =
+        let seen = HashSet()
+        let work = Queue()
+        work.Enqueue seed
+
+        while work.Count > 0 do
+            let item = work.Dequeue()
+
+            if not <| seen.Contains(item) then
+                seen.Add(item) |> ignore
+
+                for i in next item do
+                    work.Enqueue i
+
+        ()
