@@ -21,7 +21,14 @@ let testAnswer2 = 288957L
 
 let parse = nonEmptyLines
 
-let errorScore (s: string): int64 =
+let errorScore (s: string) : int64 =
+    let pp =
+        function
+        | ')' -> '(', 3L
+        | ']' -> '[', 57L
+        | '}' -> '{', 1197L
+        | '>' -> '<', 25137L
+
     let stack = Stack()
     let mutable penalty: int64 = 0L
 
@@ -31,26 +38,15 @@ let errorScore (s: string): int64 =
         | '['
         | '{'
         | '<' -> stack.Push c
-        | ')' ->
-            let c1 = stack.Pop()
-
-            if '(' <> c1 && penalty = 0L then
-                penalty <- 3L
-        | ']' ->
-            let c1 = stack.Pop()
-
-            if '[' <> c1 && penalty = 0L then
-                penalty <- 57L
-        | '}' ->
-            let c1 = stack.Pop()
-
-            if '{' <> c1 && penalty = 0L then
-                penalty <- 1197L
+        | ')'
+        | ']'
+        | '}'
         | '>' ->
+            let pair, p = pp c
             let c1 = stack.Pop()
 
-            if '<' <> c1 && penalty = 0L then
-                penalty <- 25137L
+            if c1 <> pair && penalty = 0L then
+                penalty <- p
 
     penalty
 
