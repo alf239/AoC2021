@@ -104,3 +104,10 @@ module Magic =
     let dfs<'a> (gen: 'a -> 'a seq option) (seed: 'a) : 'a seq =
         let work = Stack()
         search work.Push work.Pop (fun () -> work.Count > 0) gen seed
+
+    module Seq =
+        let ofStack<'a> (stack: Stack<'a>) = 
+            seq {
+                while stack.Count > 0 do
+                    yield stack.Pop()
+            }

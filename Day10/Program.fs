@@ -50,7 +50,6 @@ let errorScore (s: string) : int64 =
 
     penalty
 
-
 let completionScore s =
     let cs =
         function
@@ -72,13 +71,10 @@ let completionScore s =
         | '}'
         | '>' -> stack.Pop() |> ignore
 
-    let rest =
-        seq {
-            while stack.Count > 0 do
-                yield stack.Pop()
-        }
-
-    Seq.fold (fun acc x -> acc * 5L + cs x) 0L rest
+    stack
+    |> Seq.ofStack
+    |> Seq.map cs
+    |> Seq.fold (fun acc x -> acc * 5L + x) 0L
 
 let median xs =
     let sorted = xs |> Array.ofSeq |> Array.sort
