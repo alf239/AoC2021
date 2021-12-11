@@ -26,12 +26,12 @@ let ints (s: string) =
 let parse =
     nonEmptyLines >> Seq.map ints >> Array.ofSeq
 
-let step data i =
+let step data =
     let N = Array.length data
     let M = Array.length data.[0]
     let flashed = HashSet()
     let work = Queue()
-    
+
     for y in 0 .. N - 1 do
         for x in 0 .. M - 1 do
             data.[y].[x] <- data.[y].[x] + 1
@@ -45,6 +45,7 @@ let step data i =
         if not <| flashed.Contains((x, y)) then
             if data.[y].[x] > 9 then
                 flashed.Add((x, y)) |> ignore
+
                 for x1, y1 in
                     [ x - 1, y - 1
                       x - 1, y
@@ -65,16 +66,16 @@ let step data i =
 
 let task1 data =
     seq { 1 .. 100 }
-    |> Seq.map (step data)
+    |> Seq.map (fun _ -> step data)
     |> Seq.sum
 
 let task2 data =
     let N = Array.length data
     let M = Array.length data.[0]
     let size = N * M
-    
-    Seq.unfold (fun x -> Some (x, x + 1)) 1
-    |> Seq.map (fun i -> (step data i), i )
+
+    Seq.unfold (fun x -> Some(x, x + 1)) 1
+    |> Seq.map (fun i -> step data, i)
     |> Seq.find (fun (x, _) -> x = size)
     |> snd
 
