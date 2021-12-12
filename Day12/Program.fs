@@ -54,10 +54,9 @@ let task (map: Map<string, string Set>) (repeat: int) =
 
         if current <> "end" then
             for next in map.Item(current) do
-                let isSmall = Seq.forall Char.IsLower
-
                 let penalty =
-                    if isSmall next && (List.contains next path) then
+                    if String.isLowercase next
+                       && (List.contains next path) then
                         1
                     else
                         0

@@ -112,3 +112,6 @@ module Magic =
                 while stack.Count > 0 do
                     yield stack.Pop()
             }
+
+    module String =
+        let isLowercase (s: string) = s |> Seq.forall Char.IsLower
