@@ -67,9 +67,9 @@ let task (map: Map<string, string Set>) (repeat: int) =
 
     paths.Count
 
-let task1 (map: Map<string, string Set>) = task map 0
+let task1 map = task map 0
 
-let task2 (map: Map<string, string Set>) = task map 1
+let task2 map = task map 1
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
