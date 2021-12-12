@@ -106,6 +106,8 @@ module Magic =
         let work = Stack()
         search work.Push work.Pop (fun () -> work.Count > 0) gen seed
 
+    let boolToInt b = if b then 1 else 0
+    
     module Seq =
         let ofStack<'a> (stack: Stack<'a>) = 
             seq {

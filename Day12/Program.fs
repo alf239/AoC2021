@@ -29,18 +29,14 @@ let testAnswer2 = 3509
 
 let parse =
     nonEmptyLines
-    >> Seq.map
+    >> Seq.collect
         (fun (s: string) ->
             let [| f; t |] = s.Split('-')
-            f, t)
-    >> (fun data ->
-        data
-        |> Seq.collect (fun (f, t) -> [ f, t; t, f ])
-        |> Seq.filter (fun (f, t) -> f <> "end" && t <> "start")
-        |> Seq.groupBy fst
-        |> Seq.map (fun (k, xs) -> k, xs |> Seq.map snd)
-        |> Seq.map (fun (k, xs) -> k, xs |> Set.ofSeq)
-        |> Map.ofSeq)
+            [ f, t; t, f ])
+    >> Seq.filter (fun (f, t) -> f <> "end" && t <> "start")
+    >> Seq.groupBy fst
+    >> Seq.map (fun (f, fts) -> f, fts |> Seq.map snd |> Set.ofSeq)
+    >> Map.ofSeq
 
 let task (map: Map<string, string Set>) (repeat: int) =
     let paths = HashSet()
@@ -55,11 +51,9 @@ let task (map: Map<string, string Set>) (repeat: int) =
         if current <> "end" then
             for next in map.Item(current) do
                 let penalty =
-                    if String.isLowercase next
-                       && (List.contains next path) then
-                        1
-                    else
-                        0
+                    (String.isLowercase next
+                     && (List.contains next path))
+                    |> boolToInt
 
                 let newBudget = budget - penalty
 
