@@ -64,7 +64,8 @@ module Magic =
 
     let ints = words >> Array.map int
 
-    let csInts (s: string) = s.Split(',') |> Array.map int
+    let commaSeparated (s: string) = s.Split(',') 
+    let csInts = commaSeparated >> Array.map int
 
     let nonEmptyLines = lines >> Seq.filter nonEmptyString
 
