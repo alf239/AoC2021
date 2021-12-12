@@ -1,3 +1,4 @@
+open System
 open System.Collections.Generic
 open AoC.Magic
 
@@ -34,8 +35,8 @@ let parse =
             f, t)
     >> (fun data ->
         data
-        |> Seq.collect (fun (f, t) ->
-            if f = "start" || f = "end" then [f, t] else [ f, t; t, f ])
+        |> Seq.collect (fun (f, t) -> [ f, t; t, f ])
+        |> Seq.filter (fun (f, t) -> f <> "end" && t <> "start")
         |> Seq.groupBy fst
         |> Seq.map (fun (k, xs) -> k, xs |> Seq.map snd)
         |> Seq.map (fun (k, xs) -> k, xs |> Set.ofSeq)
@@ -69,30 +70,27 @@ let task2 (map: Map<string, string Set>) =
     let paths = HashSet()
     let considered = HashSet()
     let work = Queue()
-    work.Enqueue([ "start" ])
+    work.Enqueue(([ "start" ], 1))
 
     while work.Count > 0 do
-        let path = work.Dequeue()
+        let path, budget = work.Dequeue()
         let current = path |> List.head
 
         if current = "end" then
             paths.Add(path) |> ignore
         else
             for next in map.Item(current) do
-                let isSmall = current = current.ToLower()
+                let isSmall =
+                    next.ToCharArray() |> Array.forall Char.IsLower
 
-                let newPath = next :: path
-                if considered.Add(newPath) then 
-                    if not isSmall then
+                let penalty = if isSmall && (List.contains next path) then 1 else 0
+                let newBudget = budget - penalty
+
+                let newPath = next :: path, newBudget
+
+                if considered.Add(newPath) then
+                    if newBudget >= 0 then
                         work.Enqueue(newPath)
-                    else
-                        let count =
-                            path
-                            |> Seq.filter (fun s -> s = next)
-                            |> Seq.length
-
-                        if count < 2 then
-                            work.Enqueue(newPath)
 
 
     paths.Count
