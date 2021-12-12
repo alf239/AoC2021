@@ -24,7 +24,7 @@ pj-fs\n\
 start-RW"
 
 let testAnswer1 = 226
-let testAnswer2 = -2
+let testAnswer2 = 3509
 
 let parse =
     nonEmptyLines
@@ -32,15 +32,16 @@ let parse =
         (fun (s: string) ->
             let [| f; t |] = s.Split('-')
             f, t)
-
-let task1 data =
-    let map =
+    >> (fun data ->
         data
-        |> Seq.collect (fun (f, t) -> [ f, t; t, f ])
+        |> Seq.collect (fun (f, t) ->
+            if f = "start" || f = "end" then [f, t] else [ f, t; t, f ])
         |> Seq.groupBy fst
         |> Seq.map (fun (k, xs) -> k, xs |> Seq.map snd)
-        |> Map.ofSeq
+        |> Seq.map (fun (k, xs) -> k, xs |> Set.ofSeq)
+        |> Map.ofSeq)
 
+let task1 (map: Map<string, string Set>) =
     let paths = HashSet()
     let work = Queue()
     work.Enqueue(([ "start" ], []))
@@ -57,13 +58,44 @@ let task1 data =
                     let newSeen =
                         if current = current.ToLower() then
                             current :: seen
-                        else seen
+                        else
+                            seen
 
                     work.Enqueue((next :: path, newSeen))
 
     paths.Count
 
-let task2 data = -2
+let task2 (map: Map<string, string Set>) =
+    let paths = HashSet()
+    let considered = HashSet()
+    let work = Queue()
+    work.Enqueue([ "start" ])
+
+    while work.Count > 0 do
+        let path = work.Dequeue()
+        let current = path |> List.head
+
+        if current = "end" then
+            paths.Add(path) |> ignore
+        else
+            for next in map.Item(current) do
+                let isSmall = current = current.ToLower()
+
+                let newPath = next :: path
+                if considered.Add(newPath) then 
+                    if not isSmall then
+                        work.Enqueue(newPath)
+                    else
+                        let count =
+                            path
+                            |> Seq.filter (fun s -> s = next)
+                            |> Seq.length
+
+                        if count < 2 then
+                            work.Enqueue(newPath)
+
+
+    paths.Count
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
