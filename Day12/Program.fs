@@ -42,58 +42,41 @@ let parse =
         |> Seq.map (fun (k, xs) -> k, xs |> Set.ofSeq)
         |> Map.ofSeq)
 
-let task1 (map: Map<string, string Set>) =
-    let paths = HashSet()
-    let work = Queue()
-    work.Enqueue(([ "start" ], []))
-
-    while work.Count > 0 do
-        let path, seen = work.Dequeue()
-        let current = path |> List.head
-
-        if current = "end" then
-            paths.Add(path) |> ignore
-        else
-            for next in map.Item(current) do
-                if seen |> List.contains next |> not then
-                    let newSeen =
-                        if current = current.ToLower() then
-                            current :: seen
-                        else
-                            seen
-
-                    work.Enqueue((next :: path, newSeen))
-
-    paths.Count
-
-let task2 (map: Map<string, string Set>) =
+let task (map: Map<string, string Set>) (repeat: int) =
     let paths = HashSet()
     let considered = HashSet()
     let work = Queue()
-    work.Enqueue(([ "start" ], 1))
+    work.Enqueue(([ "start" ], repeat))
 
     while work.Count > 0 do
         let path, budget = work.Dequeue()
         let current = path |> List.head
 
-        if current = "end" then
-            paths.Add(path) |> ignore
-        else
+        if current <> "end" then
             for next in map.Item(current) do
-                let isSmall =
-                    next.ToCharArray() |> Array.forall Char.IsLower
+                let isSmall = Seq.forall Char.IsLower
 
-                let penalty = if isSmall && (List.contains next path) then 1 else 0
+                let penalty =
+                    if isSmall next && (List.contains next path) then
+                        1
+                    else
+                        0
+
                 let newBudget = budget - penalty
 
-                let newPath = next :: path, newBudget
+                if newBudget >= 0 then
+                    let newPath = next :: path, newBudget
 
-                if considered.Add(newPath) then
-                    if newBudget >= 0 then
-                        work.Enqueue(newPath)
-
+                    if considered.Add newPath then
+                        work.Enqueue newPath
+        else
+            paths.Add(path) |> ignore
 
     paths.Count
+
+let task1 (map: Map<string, string Set>) = task map 0
+
+let task2 (map: Map<string, string Set>) = task map 1
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
