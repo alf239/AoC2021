@@ -27,32 +27,49 @@ start-RW"
 let testAnswer1 = 226
 let testAnswer2 = 3509
 
+type Cave =
+    | Large of string
+    | Small of string
+    | Start
+    | End
+
+let cave =
+    function
+    | "start" -> Start
+    | "end" -> End
+    | s when String.isLowercase s -> Small s
+    | s -> Large s
+
+let isSmall =
+    function
+    | Small _ -> true
+    | _ -> false
+
 let parse =
     nonEmptyLines
     >> Seq.collect
         (fun (s: string) ->
-            let [| f; t |] = s.Split('-')
+            let [| f; t |] = s.Split('-') |> Array.map cave
             [ f, t; t, f ])
-    >> Seq.filter (fun (f, t) -> f <> "end" && t <> "start")
+    >> Seq.filter (fun (f, t) -> f <> End && t <> Start)
     >> Seq.groupBy fst
     >> Seq.map (fun (f, fts) -> f, fts |> Seq.map snd |> Set.ofSeq)
     >> Map.ofSeq
 
-let task (map: Map<string, string Set>) (repeat: int) =
+let task (map: Map<Cave, Cave Set>) (repeat: int) =
     let paths = HashSet()
     let considered = HashSet()
     let work = Queue()
-    work.Enqueue(([ "start" ], repeat))
+    work.Enqueue(([ Start ], repeat))
 
     while work.Count > 0 do
         let path, budget = work.Dequeue()
         let current = path |> List.head
 
-        if current <> "end" then
+        if current <> End then
             for next in map.Item(current) do
                 let penalty =
-                    (String.isLowercase next
-                     && (List.contains next path))
+                    (isSmall next && (List.contains next path))
                     |> boolToInt
 
                 let newBudget = budget - penalty
