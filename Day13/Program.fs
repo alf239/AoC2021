@@ -26,7 +26,9 @@ fold along y=7
 fold along x=5"
 
 let testAnswer1 = "17"
-let testAnswer2 = "\n\
+
+let testAnswer2 =
+    "\
 #####\n\
 #...#\n\
 #...#\n\
@@ -96,7 +98,7 @@ let task2 (map, folds) =
         folds
         |> List.fold (fun acc fold -> acc |> Set.map (doFold fold)) map
 
-    "\n" + (visualise result)
+    visualise result
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
@@ -107,4 +109,8 @@ let result2 = testInput |> fullTask2
 assert (result2 = testAnswer2)
 
 printfn $"Day 13.1: {realInput |> fullTask1}"
-printfn $"Day 13.2: {realInput |> fullTask2 |> (fun s -> s.Replace('.', ' '))}"
+
+printfn
+    $"Day 13.2:\n{realInput
+                  |> fullTask2
+                  |> (fun s -> s.Replace('.', ' '))}"
