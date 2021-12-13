@@ -57,7 +57,7 @@ module Magic =
 
     let nonEmptyString s = s <> ""
 
-    let lines (s: string) = s.Split('\n')
+    let lines (s: string) = s.Split('\n') |> Array.map (fun s -> s.Trim())
 
     let words (s: string) =
         s.Split(' ') |> Array.filter nonEmptyString
