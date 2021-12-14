@@ -74,9 +74,10 @@ let task n (poly, step) =
         |> Seq.map (fun (k, cnt) -> k |> Seq.head, cnt)
         |> Seq.append [ (last, 1L) ]
         |> summarize
+        |> Seq.map snd
 
-    let mx = frequencies |> Seq.maxBy snd |> snd
-    let mn = frequencies |> Seq.minBy snd |> snd
+    let mx = frequencies |> Seq.max
+    let mn = frequencies |> Seq.min
     mx - mn
 
 let task1 = task 10
