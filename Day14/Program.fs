@@ -57,7 +57,7 @@ let parse s =
             (fun (pair, cnt) ->
                 rules
                 |> Map.find pair
-                |> Seq.map (fun k -> k, int64 cnt))
+                |> Seq.map (fun k -> k, cnt))
         >> summarize
 
     let step (last, pairs) = last, pairsStep pairs
