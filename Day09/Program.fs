@@ -3,10 +3,10 @@ open AoC.Magic
 let realInput = taskInput 2021 9
 
 let testInput =
-    "2199943210\n\
-3987894921\n\
-9856789892\n\
-8767896789\n\
+    "2199943210
+3987894921
+9856789892
+8767896789
 9899965678"
 
 let testAnswer1 = 15

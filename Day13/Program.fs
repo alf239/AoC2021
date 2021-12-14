@@ -28,12 +28,14 @@ fold along x=5"
 let testAnswer1 = "17"
 
 let testAnswer2 =
-    "\
-#####\n\
-#...#\n\
-#...#\n\
-#...#\n\
-#####\n"
+    ("\
+#####
+#...#
+#...#
+#...#
+#####
+"
+        .Replace("\r", ""))
 
 type Fold =
     | X of int
