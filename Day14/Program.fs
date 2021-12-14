@@ -25,6 +25,11 @@ CN -> C"
 let testAnswer1 = 1588L
 let testAnswer2 = 2188189693529L
 
+let summarize<'a when 'a: equality> (data: ('a * int64) seq) =
+    data
+    |> Seq.groupBy fst
+    |> Seq.map (fun (k, cnts) -> k, cnts |> Seq.map snd |> Seq.sum)
+
 let parse s =
     let ls = nonEmptyLines s
     let poly = ls |> Seq.head
@@ -47,34 +52,28 @@ let parse s =
                 [| c1; c2 |], [ [| c1; insert |]; [| insert; c2 |] ])
         |> Map.ofSeq
 
-    preparedPoly, rules
-
-let step (poly: char * seq<char [] * int64>) (rules: Map<char [], #seq<char []>>) =
-    let last, pairs = poly
-
-    let newPairs =
-        pairs
-        |> Seq.collect
+    let pairsStep =
+        Seq.collect
             (fun (pair, cnt) ->
                 rules
                 |> Map.find pair
                 |> Seq.map (fun k -> k, int64 cnt))
-        |> Seq.groupBy fst
-        |> Seq.map (fun (k, cnts) -> k, cnts |> Seq.map snd |> Seq.sum)
+        >> summarize
 
-    last, newPairs
+    let step (last, pairs) = last, pairsStep pairs
 
-let task (poly, rules) n =
+    preparedPoly, step
+
+let task (poly, step) n =
     let last, pairs =
         [ 1 .. n ]
-        |> Seq.fold (fun acc _ -> step acc rules) poly
+        |> Seq.fold (fun acc _ -> step acc) poly
 
     let frequencies =
         pairs
         |> Seq.map (fun (k, cnt) -> k |> Seq.head, cnt)
         |> Seq.append [ (last, 1L) ]
-        |> Seq.groupBy fst
-        |> Seq.map (fun (k, cnts) -> k, cnts |> Seq.map snd |> Seq.sum)
+        |> summarize
 
     let mx = frequencies |> Seq.maxBy snd |> snd
     let mn = frequencies |> Seq.minBy snd |> snd
