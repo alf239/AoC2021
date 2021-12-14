@@ -64,7 +64,7 @@ let parse s =
 
     preparedPoly, step
 
-let task (poly, step) n =
+let task n (poly, step) =
     let last, pairs =
         [ 1 .. n ]
         |> Seq.fold (fun acc _ -> step acc) poly
@@ -79,9 +79,9 @@ let task (poly, step) n =
     let mn = frequencies |> Seq.minBy snd |> snd
     mx - mn
 
-let task1 data = task data 10
+let task1 = task 10
 
-let task2 data = task data 40
+let task2 = task 40
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
