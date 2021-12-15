@@ -4,6 +4,9 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+*.sln.DotSettings.user
+
 # Advent of Code
 cookie.txt
-inputs
+/inputs/
+
