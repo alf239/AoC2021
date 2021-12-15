@@ -18,7 +18,7 @@ let testInput =
 2311944581"
 
 let testAnswer1 = 40
-let testAnswer2 = -2
+let testAnswer2 = 315
 
 let charToint (s: string) =
     s.ToCharArray()
@@ -33,38 +33,70 @@ let format data =
     |> String.concat "\n"
 
 let neighbours x y mxx mxy =
-    [ x - 1 , y ; x , y - 1; x + 1, y; x, y + 1] |> Seq.filter (fun (x, y) -> x >= 0 && y >= 0 && x < mxx && y < mxy)
+    [ x - 1, y
+      x, y - 1
+      x + 1, y
+      x, y + 1 ]
+    |> Seq.filter (fun (x, y) -> x >= 0 && y >= 0 && x < mxx && y < mxy)
 
-let task1 data =
+let dijkstra data =
     let H = data |> Array.length
     let W = data.[0] |> Array.length
 
-    let seen = HashSet() 
+    let seen = HashSet()
     let Q = PriorityQueue()
-    
-    let dist = [| for _y in 0 .. H - 1 -> [| for _x in 0 .. W - 1 -> infinity |] |]
-    let prev = [| for _y in 0 .. H - 1 -> [| for _x in 0 .. W - 1 -> (-1, -1) |] |]
+
+    let dist =
+        [| for _y in 0 .. H - 1 -> [| for _x in 0 .. W - 1 -> infinity |] |]
+
+    let prev =
+        [| for _y in 0 .. H - 1 -> [| for _x in 0 .. W - 1 -> (-1, -1) |] |]
+
     dist.[0].[0] <- 0
+
     for y in 0 .. H - 1 do
         for x in 0 .. W - 1 do
             Q.Enqueue((x, y), dist.[x].[y])
 
     while Q.Count > 0 do
         let x, y = Q.Dequeue()
+
         if not <| seen.Contains((x, y)) then
             seen.Add((x, y)) |> ignore
             let D = dist.[y].[x]
+
             for x1, y1 in neighbours x y W H do
                 if not <| seen.Contains((x1, y1)) then
                     let alt = D + float data.[y1].[x1]
+
                     if alt < dist.[y1].[x1] then
                         Q.Enqueue((x1, y1), alt)
                         dist.[y1].[x1] <- alt
                         prev.[y1].[x1] <- (x, y)
-    
+
     int <| dist.[H - 1].[W - 1]
 
-let task2 data = -2
+let amplify data =
+    let H = data |> Array.length
+    let W = data.[0] |> Array.length
+
+    seq {
+        for i in 0 .. 4 do
+            for y in 0 .. H - 1 do
+                yield
+                    seq {
+                        for j in 0 .. 4 do
+                            for x in 0 .. W - 1 do
+                                let risk = (data.[y].[x] + i + j - 1) % 9 + 1
+                                yield risk
+                    }
+    }
+    |> Seq.map Array.ofSeq
+    |> Array.ofSeq
+
+let task1 = dijkstra
+
+let task2 = amplify >> dijkstra
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
