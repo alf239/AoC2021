@@ -1,4 +1,6 @@
+open System.Collections.Generic
 open AoC.Magic
+open FSharpx.Collections
 
 let realInput = taskInput 2021 15
 
@@ -30,28 +32,37 @@ let format data =
     |> Seq.map (Array.map <| sprintf "%4d" >> String.concat " ")
     |> String.concat "\n"
 
+let neighbours x y mxx mxy =
+    [ x - 1 , y ; x , y - 1; x + 1, y; x, y + 1] |> Seq.filter (fun (x, y) -> x >= 0 && y >= 0 && x < mxx && y < mxy)
+
 let task1 data =
     let H = data |> Array.length
     let W = data.[0] |> Array.length
 
-    let dp =
-        [| for _y in 0 .. H - 1 -> [| for _x in 0 .. W - 1 -> 0 |] |]
+    let seen = HashSet() 
+    let Q = PriorityQueue()
+    
+    let dist = [| for _y in 0 .. H - 1 -> [| for _x in 0 .. W - 1 -> infinity |] |]
+    let prev = [| for _y in 0 .. H - 1 -> [| for _x in 0 .. W - 1 -> (-1, -1) |] |]
+    dist.[0].[0] <- 0
+    for y in 0 .. H - 1 do
+        for x in 0 .. W - 1 do
+            Q.Enqueue((x, y), dist.[x].[y])
 
-    for x in 1 .. W - 1 do
-        dp.[0].[x] <- dp.[0].[x - 1] + data.[0].[x]
-
-    for y in 1 .. H - 1 do
-        dp.[y].[0] <- dp.[y - 1].[0] + data.[y].[0]
-
-    for y in 1 .. H - 1 do
-        for x in 1 .. W - 1 do
-            dp.[y].[x] <- (min dp.[y - 1].[x] dp.[y].[x - 1]) + data.[y].[x]
-
-//    printf "%s" <| format data
-//    printf "\n\n"
-//    printf "%s" <| format dp
-
-    dp.[H - 1].[W - 1]
+    while Q.Count > 0 do
+        let x, y = Q.Dequeue()
+        if not <| seen.Contains((x, y)) then
+            seen.Add((x, y)) |> ignore
+            let D = dist.[y].[x]
+            for x1, y1 in neighbours x y W H do
+                if not <| seen.Contains((x1, y1)) then
+                    let alt = D + float data.[y1].[x1]
+                    if alt < dist.[y1].[x1] then
+                        Q.Enqueue((x1, y1), alt)
+                        dist.[y1].[x1] <- alt
+                        prev.[y1].[x1] <- (x, y)
+    
+    int <| dist.[H - 1].[W - 1]
 
 let task2 data = -2
 
