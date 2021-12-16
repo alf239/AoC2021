@@ -1,26 +1,5 @@
 open AoC.Magic
 
-let realInput = taskInput 2021 16
-
-let tests1 =
-    [ "D2FE28", 6
-      "EE00D40C823060", 14
-      "8A004A801A8002F478", 16
-      "620080001611562C8802118E34", 12
-      "C0015000016115A2E0802F182340", 23
-      "A0016C880162017C3686B18A3D4780", 31 ]
-
-let tests2 =
-    [ "D2FE28", 2021
-      "C200B40A82", 3
-      "04005AC33890", 54
-      "880086C3E88112", 7
-      "CE00C43D881120", 9
-      "D8005AC2A8F0", 1
-      "F600BC2D8F", 0
-      "9C005AC2F8F0", 0
-      "9C0141080250320F1802104A08", 1 ]
-
 let rec consume nr (data: byte []) (pos: int) : uint64 =
     let shift = pos % 4
     let offset = pos / 4
@@ -127,6 +106,8 @@ let parse (s: string) =
 
 
 let rec eval packet =
+    let relation fn [ a; b ] = if fn a b then 1UL else 0UL
+
     match packet with
     | Literal (_, x) -> x
     | Operator (_, expr, packets) ->
@@ -137,15 +118,9 @@ let rec eval packet =
         | Product -> Seq.fold (*) 1UL terms
         | Minimum -> Seq.min terms
         | Maximum -> Seq.max terms
-        | GreaterThan ->
-            terms
-            |> (fun [ a; b ] -> if a > b then 1UL else 0UL)
-        | LessThan ->
-            terms
-            |> (fun [ a; b ] -> if a < b then 1UL else 0UL)
-        | EqualTo ->
-            terms
-            |> (fun [ a; b ] -> if a = b then 1UL else 0UL)
+        | GreaterThan -> terms |> relation (>)
+        | LessThan -> terms |> relation (<)
+        | EqualTo -> terms |> relation (=)
 
 let rec sumOfVersions p =
     match p with
@@ -161,11 +136,31 @@ let task2 = eval
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
 
+let tests1 =
+    [ "D2FE28", 6
+      "EE00D40C823060", 14
+      "8A004A801A8002F478", 16
+      "620080001611562C8802118E34", 12
+      "C0015000016115A2E0802F182340", 23
+      "A0016C880162017C3686B18A3D4780", 31 ]
+
+let tests2 =
+    [ "D2FE28", 2021
+      "C200B40A82", 3
+      "04005AC33890", 54
+      "880086C3E88112", 7
+      "CE00C43D881120", 9
+      "D8005AC2A8F0", 1
+      "F600BC2D8F", 0
+      "9C005AC2F8F0", 0
+      "9C0141080250320F1802104A08", 1 ]
+
 let results1 = tests1 |> List.map (fst >> fullTask1)
 assert (results1 = (tests1 |> List.map (snd >> uint64)))
 
 let results2 = tests2 |> List.map (fst >> fullTask2)
 assert (results2 = (tests2 |> List.map (snd >> uint64)))
 
+let realInput = taskInput 2021 16
 printfn $"Day 16.1: {realInput |> fullTask1}"
 printfn $"Day 16.2: {realInput |> fullTask2}"
