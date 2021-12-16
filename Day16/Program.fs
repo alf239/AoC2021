@@ -114,10 +114,10 @@ let rec eval packet =
         let terms = packets |> List.map eval
 
         match expr with
-        | Sum -> Seq.sum terms
-        | Product -> Seq.fold (*) 1UL terms
-        | Minimum -> Seq.min terms
-        | Maximum -> Seq.max terms
+        | Sum -> terms |> Seq.sum
+        | Product -> terms |> Seq.fold (*) 1UL
+        | Minimum -> terms |> Seq.min
+        | Maximum -> terms |> Seq.max
         | GreaterThan -> terms |> relation (>)
         | LessThan -> terms |> relation (<)
         | EqualTo -> terms |> relation (=)
