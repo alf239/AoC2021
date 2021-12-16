@@ -15,28 +15,21 @@ let rec consume nr (data: byte []) (pos: int) : uint64 =
         let lo = consume remaining data (pos + hbits)
         (hi <<< remaining) ||| lo
 
-type Expression =
-    | Sum
-    | Product
-    | Minimum
-    | Maximum
-    | GreaterThan
-    | LessThan
-    | EqualTo
-
 type Packet =
     | Literal of byte * uint64
-    | Operator of byte * Expression * Packet list
+    | Operator of byte * (uint64 list -> uint64) * Packet list
 
 let expr typ =
+    let relation fn [ a; b ] = if fn a b then 1UL else 0UL
+
     match int typ with
-    | 0 -> Sum
-    | 1 -> Product
-    | 2 -> Minimum
-    | 3 -> Maximum
-    | 5 -> GreaterThan
-    | 6 -> LessThan
-    | 7 -> EqualTo
+    | 0 -> List.sum
+    | 1 -> List.fold (*) 1UL
+    | 2 -> List.min
+    | 3 -> List.max
+    | 5 -> relation (>)
+    | 6 -> relation (<)
+    | 7 -> relation (=)
 
 let rec readPackets data pos length =
     let mutable p = pos
@@ -106,21 +99,9 @@ let parse (s: string) =
 
 
 let rec eval packet =
-    let relation fn [ a; b ] = if fn a b then 1UL else 0UL
-
     match packet with
     | Literal (_, x) -> x
-    | Operator (_, expr, packets) ->
-        let terms = packets |> List.map eval
-
-        match expr with
-        | Sum -> terms |> Seq.sum
-        | Product -> terms |> Seq.fold (*) 1UL
-        | Minimum -> terms |> Seq.min
-        | Maximum -> terms |> Seq.max
-        | GreaterThan -> terms |> relation (>)
-        | LessThan -> terms |> relation (<)
-        | EqualTo -> terms |> relation (=)
+    | Operator (_, expr, packets) -> packets |> List.map eval |> expr
 
 let rec sumOfVersions p =
     match p with
