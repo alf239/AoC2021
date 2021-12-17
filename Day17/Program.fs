@@ -25,17 +25,14 @@ let within (area: Area) (point: Point) =
     && point.Y <= area.Y2
 
 let trajectory (velocity: Velocity) =
-    let mutable x = 0
-    let mutable y = 0
-
-    seq {
-        for i in Seq.initInfinite id do
-            yield { X = x; Y = y }
-            let vx = max 0 (velocity.VX - i)
-            let vy = velocity.VY - i
-            x <- x + vx
-            y <- y + vy
-    }
+    Seq.unfold
+        (fun (x, y, vx, vy) ->
+            let nx = x + vx
+            let ny = y + vy
+            let nvx = max 0 (vx - 1)
+            let nvy = vy - 1
+            Some({ X = x; Y = y }, (nx, ny, nvx, nvy)))
+        (0, 0, velocity.VX, velocity.VY)
 
 let willHit (area: Area) (velocity: Velocity) =
     trajectory velocity
