@@ -43,13 +43,10 @@ let maxHeight (velocity: Velocity) = (1 + velocity.VY) * velocity.VY / 2
 
 let acceptableVelocities area =
     let minvx = int <| sqrt (2.0 * (double area.X1))
-    let maxvx = area.X2
-    let minvy = area.Y1
-    let maxvy = -area.Y1
 
     seq {
-        for vx in minvx .. maxvx do
-            for vy in minvy .. maxvy do
+        for vx in minvx .. area.X2 do
+            for vy in area.Y1 .. (-area.Y1) do
                 yield { VX = vx; VY = vy }
     }
     |> Seq.filter (willHit area)
