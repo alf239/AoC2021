@@ -1,16 +1,71 @@
 open AoC.Magic
 
-let parse = nonEmptyLines
+/// Assuming ordered ranges
+type Area = { X1: int; X2: int; Y1: int; Y2: int }
+type Point = { X: int; Y: int }
+type Velocity = { VX: int; VY: int }
 
-let task1 data = -1
+let parse s =
+    let a = words s
+    let parseRange (r: string) = r.Split('=').[1].Split('.')
+    let [| x1; _; x2 |] = parseRange a.[2]
+    let [| y1; _; y2 |] = parseRange a.[3]
+
+    { X1 = int x1
+      X2 = int <| x2.TrimEnd(',')
+      Y1 = int y1
+      Y2 = int y2 }
+
+let missed (area: Area) (point: Point) = point.X > area.X2 || point.Y < area.Y1
+
+let within (area: Area) (point: Point) =
+    point.X >= area.X1
+    && point.X <= area.X2
+    && point.Y >= area.Y1
+    && point.Y <= area.Y2
+
+let trajectory (velocity: Velocity) =
+    let mutable x = 0
+    let mutable y = 0
+
+    seq {
+        for i in Seq.initInfinite id do
+            yield { X = x; Y = y }
+            let vx = max 0 (velocity.VX - i)
+            let vy = velocity.VY - i
+            x <- x + vx
+            y <- y + vy
+    }
+
+let willHit (area: Area) (velocity: Velocity) =
+    trajectory velocity
+    |> Seq.takeWhile (missed area >> not)
+    |> Seq.exists (within area)
+
+let maxHeight (velocity: Velocity) = (1 + velocity.VY) * velocity.VY / 2
+
+let task1 area =
+    let minvx = int <| sqrt (2.0 * (double area.X1))
+    let maxvx = area.X2
+    let minvy = area.Y1
+    let maxvy = -area.Y1
+
+    seq {
+        for vx in minvx .. maxvx do
+            for vy in minvy .. maxvy do
+                yield { VX = vx; VY = vy }
+    }
+    |> Seq.filter (willHit area)
+    |> Seq.map maxHeight
+    |> Seq.max
 
 let task2 data = -2
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
 
-let testInput = ""
-let testAnswer1 = -1
+let testInput = "target area: x=20..30, y=-10..-5"
+let testAnswer1 = 45
 let testAnswer2 = -2
 let result1 = testInput |> fullTask1
 assert (result1 = testAnswer1)
