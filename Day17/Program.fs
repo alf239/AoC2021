@@ -44,7 +44,7 @@ let willHit (area: Area) (velocity: Velocity) =
 
 let maxHeight (velocity: Velocity) = (1 + velocity.VY) * velocity.VY / 2
 
-let acceptableVelocities area = 
+let acceptableVelocities area =
     let minvx = int <| sqrt (2.0 * (double area.X1))
     let maxvx = area.X2
     let minvy = area.Y1
@@ -58,9 +58,11 @@ let acceptableVelocities area =
     |> Seq.filter (willHit area)
 
 let task1 =
-    acceptableVelocities >> Seq.map maxHeight >> Seq.max
+    acceptableVelocities
+    >> Seq.map maxHeight
+    >> Seq.max
 
-let task2 = acceptableVelocities  >> Seq.length
+let task2 = acceptableVelocities >> Seq.length
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
