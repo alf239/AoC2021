@@ -44,7 +44,7 @@ let willHit (area: Area) (velocity: Velocity) =
 
 let maxHeight (velocity: Velocity) = (1 + velocity.VY) * velocity.VY / 2
 
-let task1 area =
+let acceptableVelocities area = 
     let minvx = int <| sqrt (2.0 * (double area.X1))
     let maxvx = area.X2
     let minvy = area.Y1
@@ -56,17 +56,18 @@ let task1 area =
                 yield { VX = vx; VY = vy }
     }
     |> Seq.filter (willHit area)
-    |> Seq.map maxHeight
-    |> Seq.max
 
-let task2 data = -2
+let task1 =
+    acceptableVelocities >> Seq.map maxHeight >> Seq.max
+
+let task2 = acceptableVelocities  >> Seq.length
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
 
 let testInput = "target area: x=20..30, y=-10..-5"
 let testAnswer1 = 45
-let testAnswer2 = -2
+let testAnswer2 = 112
 let result1 = testInput |> fullTask1
 assert (result1 = testAnswer1)
 let result2 = testInput |> fullTask2
