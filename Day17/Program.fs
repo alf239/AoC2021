@@ -36,7 +36,7 @@ let trajectory (velocity: Velocity) =
 
 let willHit (area: Area) (velocity: Velocity) =
     trajectory velocity
-    |> Seq.takeWhile (missed area >> not)
+    |> Seq.takeWhile (not << missed area)
     |> Seq.exists (within area)
 
 let maxHeight (velocity: Velocity) = (1 + velocity.VY) * velocity.VY / 2
