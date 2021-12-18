@@ -45,28 +45,22 @@ let rec addLeft x p =
 
 let rec explode n pair =
     match pair with
-    | Pair (Num a, Num b) when n >= 4 -> a, b, Num 0
+    | Pair (Num a, Num b) when n = 4 -> Some(a, b, Num 0)
     | Pair (a, b) as unchanged ->
-        let cl, cr, p = explode (n + 1) a
+        explode (n + 1) a
+        |> Option.map
+            (fun (cl, cr, p) ->
+                let nb = b |> addLeft cr
 
-        if p = a then
-            assert (cl = 0)
-            assert (cr = 0)
-            let cl, cr, p = explode (n + 1) b
-
-            if p = b then
-                assert (cl = 0)
-                assert (cr = 0)
-                0, 0, unchanged
-            else
-                let na = a |> addRight cl
-
-                0, cr, Pair(na, p)
-        else
-            let nb = b |> addLeft cr
-
-            cl, 0, Pair(p, nb)
-    | fish -> 0, 0, fish
+                cl, 0L, Pair(p, nb))
+        |> Option.orElseWith
+            (fun () ->
+                explode (n + 1) b
+                |> Option.map
+                    (fun (cl, cr, p) ->
+                        let na = a |> addRight cl
+                        0L, cr, Pair(na, p)))
+    | fish -> None
 
 let rec split pair =
     match pair with
@@ -81,12 +75,9 @@ let rec split pair =
     | Num x -> None
 
 let reduce p =
-    let _, _, exploded = explode 0 p
-
-    if p <> exploded then
-        Some exploded
-    else
-        split p
+    explode 0 p
+    |> Option.map (fun (_, _, p) -> p)
+    |> Option.orElseWith (fun () -> split p)
 
 let canonical p = Seq.iterate reduce p |> Seq.last
 
