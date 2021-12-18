@@ -17,11 +17,11 @@ let parseFish (s: string) =
     s
     |> Seq.fold
         (fun stack c ->
-            match stack, c with
-            | stack, '[' -> stack
-            | b :: a :: stack, ']' -> (Pair(a, b)) :: stack
-            | stack, ',' -> stack
-            | stack, x -> Num(int64 x - int64 '0') :: stack)
+            match c, stack with
+            | '[', stack -> stack
+            | ']', b :: a :: stack -> Pair(a, b) :: stack
+            | ',', stack -> stack
+            | _, stack -> Num(int64 c - int64 '0') :: stack)
         []
     |> List.head
 
