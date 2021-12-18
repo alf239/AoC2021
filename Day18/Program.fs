@@ -80,20 +80,15 @@ let rec split pair =
         Some <| Pair(Num a, Num b)
     | Num x -> None
 
-let canonical p =
-    Seq.unfold
-        (fun p ->
-            let _, _, exploded = explode 0 p
+let reduce p =
+    let _, _, exploded = explode 0 p
 
-            if p <> exploded then
-                Some(p, exploded)
-            else
-                let s = split p |> Option.defaultValue p
-                Some(p, s))
-        p
-    |> Seq.windowed 2
-    |> Seq.find (fun [| a; b |] -> a = b)
-    |> fun arr -> arr.[0]
+    if p <> exploded then
+        Some exploded
+    else
+        split p
+
+let canonical p = Seq.iterate reduce p |> Seq.last
 
 let rec render p = p.ToString()
 

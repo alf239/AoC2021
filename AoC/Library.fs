@@ -57,14 +57,15 @@ module Magic =
 
     let nonEmptyString s = s <> ""
 
-    let lines (s: string) = s.Split('\n') |> Array.map (fun s -> s.Trim())
+    let lines (s: string) =
+        s.Split('\n') |> Array.map (fun s -> s.Trim())
 
     let words (s: string) =
         s.Split(' ') |> Array.filter nonEmptyString
 
     let ints = words >> Array.map int
 
-    let commaSeparated (s: string) = s.Split(',') 
+    let commaSeparated (s: string) = s.Split(',')
     let csInts = commaSeparated >> Array.map int
 
     let nonEmptyLines = lines >> Seq.filter nonEmptyString
@@ -107,13 +108,16 @@ module Magic =
         search work.Push work.Pop (fun () -> work.Count > 0) gen seed
 
     let boolToInt b = if b then 1 else 0
-    
+
     module Seq =
-        let ofStack<'a> (stack: Stack<'a>) = 
+        let ofStack<'a> (stack: Stack<'a>) =
             seq {
                 while stack.Count > 0 do
                     yield stack.Pop()
             }
+
+        let iterate f init =
+            Seq.unfold (Option.map (fun state -> state, f state)) (Some init)
 
     module String =
         let isLowercase (s: string) = s |> Seq.forall Char.IsLower
