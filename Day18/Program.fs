@@ -48,18 +48,11 @@ let rec explode n pair =
     | Pair (Num a, Num b) when n = 4 -> Some(a, b, Num 0)
     | Pair (a, b) ->
         explode (n + 1) a
-        |> Option.map
-            (fun (cl, cr, p) ->
-                let nb = b |> addLeft cr
-
-                cl, 0L, Pair(p, nb))
+        |> Option.map (fun (cl, cr, p) -> cl, 0L, Pair(p, addLeft cr b))
         |> Option.orElseWith
             (fun () ->
                 explode (n + 1) b
-                |> Option.map
-                    (fun (cl, cr, p) ->
-                        let na = a |> addRight cl
-                        0L, cr, Pair(na, p)))
+                |> Option.map (fun (cl, cr, p) -> 0L, cr, Pair(addRight cl a, p)))
     | _ -> None
 
 let rec split pair =
