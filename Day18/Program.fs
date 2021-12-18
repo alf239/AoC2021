@@ -134,7 +134,14 @@ let fishSum = List.reduce add
 
 let task1 = fishSum >> magnitude
 
-let task2 data = -2L
+let task2 data =
+    seq {
+        for a in data do
+            for b in data do
+                yield a, b
+    }
+    |> Seq.map (fun (a, b) -> add a b |> magnitude)
+    |> Seq.max
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
@@ -166,7 +173,7 @@ let testSum1 = testInput |> parse |> fishSum |> render
 assert (testSum1 = "[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]")
 
 let testAnswer1 = 4140L
-let testAnswer2 = -2L
+let testAnswer2 = 3993L
 let result1 = testInput |> fullTask1
 assert (result1 = testAnswer1)
 let result2 = testInput |> fullTask2
