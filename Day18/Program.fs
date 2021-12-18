@@ -2,7 +2,7 @@ open System.Collections.Generic
 open AoC.Magic
 open Microsoft.FSharp.Core
 
-[<StructuredFormatDisplay("{ToString()}")>]
+[<StructuredFormatDisplay("{DisplayString}")>]
 type Pair =
     | Num of int64
     | Pair of Pair * Pair
@@ -10,6 +10,8 @@ type Pair =
         match this with
         | Num x -> string x
         | Pair (a, b) -> $"[{a.ToString()},{b.ToString()}]"
+
+    member this.DisplayString = this.ToString()
 
 let parseFish (s: string) =
     let stack = Stack()
@@ -87,7 +89,7 @@ let canonical p =
                 Some(p, exploded)
             else
                 let s = split p |> Option.defaultValue p
-                Some(s, p))
+                Some(p, s))
         p
     |> Seq.windowed 2
     |> Seq.find (fun [| a; b |] -> a = b)
@@ -108,9 +110,7 @@ assert (example2 = "[[3,[2,[8,0]]],[9,[5,[7,0]]]]")
 let add a b = Pair(a, b) |> canonical
 
 let tAdd a b =
-    add (parseFish a) (parseFish b)
-    |> canonical
-    |> render
+    add (parseFish a) (parseFish b) |> render
 
 let example3 =
     tAdd "[[[[4,3],4],4],[7,[[8,4],9]]]" "[1,1]"
@@ -120,7 +120,7 @@ assert (example3 = "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]")
 let example4 =
     tAdd "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]" "[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]"
 
-assert (example3 = "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]")
+assert (example4 = "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]")
 
 let rec magnitude =
     function
