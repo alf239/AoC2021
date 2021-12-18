@@ -46,7 +46,7 @@ let rec addLeft x p =
 let rec explode n pair =
     match pair with
     | Pair (Num a, Num b) when n = 4 -> Some(a, b, Num 0)
-    | Pair (a, b) as unchanged ->
+    | Pair (a, b) ->
         explode (n + 1) a
         |> Option.map
             (fun (cl, cr, p) ->
@@ -60,7 +60,7 @@ let rec explode n pair =
                     (fun (cl, cr, p) ->
                         let na = a |> addRight cl
                         0L, cr, Pair(na, p)))
-    | fish -> None
+    | _ -> None
 
 let rec split pair =
     match pair with
@@ -72,7 +72,7 @@ let rec split pair =
         let a = x / 2L
         let b = x - a
         Some <| Pair(Num a, Num b)
-    | Num x -> None
+    | _ -> None
 
 let reduce p =
     explode 0 p
