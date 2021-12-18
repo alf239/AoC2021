@@ -14,21 +14,16 @@ type Pair =
     member this.DisplayString = this.ToString()
 
 let parseFish (s: string) =
-    let stack = Stack()
-
-    for c in s do
-        match c with
-        | '[' -> ()
-        | ']' ->
-            let b = stack.Pop()
-            let a = stack.Pop()
-            stack.Push(Pair(a, b))
-        | ',' -> ()
-        | x when x >= '0' && x <= '9' ->
-            let n = int x - int '0'
-            stack.Push(Num n)
-
-    stack.Pop()
+    s
+    |> Seq.fold
+        (fun stack c ->
+            match stack, c with
+            | stack, '[' -> stack
+            | b :: a :: stack, ']' -> (Pair(a, b)) :: stack
+            | stack, ',' -> stack
+            | stack, x -> Num(int64 x - int64 '0') :: stack)
+        []
+    |> List.head
 
 let parse =
     nonEmptyLines >> Seq.map parseFish >> List.ofSeq
