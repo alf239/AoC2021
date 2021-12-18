@@ -4,7 +4,7 @@ open Microsoft.FSharp.Core
 
 [<StructuredFormatDisplay("{DisplayString}")>]
 type Pair =
-    | Num of int64
+    | Num of int
     | Pair of Pair * Pair
     override this.ToString() =
         match this with
@@ -21,7 +21,7 @@ let parseFish (s: string) =
             | '[', stack -> stack
             | ']', b :: a :: stack -> Pair(a, b) :: stack
             | ',', stack -> stack
-            | _, stack -> Num(int64 c - int64 '0') :: stack)
+            | _, stack -> Num(int c - int '0') :: stack)
         []
     |> List.head
 
@@ -43,11 +43,11 @@ let rec explode level =
     | Pair (Num a, Num b) when level >= 4 -> Some(a, b, Num 0)
     | Pair (a, b) ->
         explode (level + 1) a
-        |> Option.map (fun (cl, cr, a') -> cl, 0L, Pair(a', addLeft cr b))
+        |> Option.map (fun (cl, cr, a') -> cl, 0, Pair(a', addLeft cr b))
         |> Option.orElseWith
             (fun () ->
                 explode (level + 1) b
-                |> Option.map (fun (cl, cr, b') -> 0L, cr, Pair(addRight cl a, b')))
+                |> Option.map (fun (cl, cr, b') -> 0, cr, Pair(addRight cl a, b')))
     | _ -> None
 
 let rec split =
@@ -57,7 +57,7 @@ let rec split =
         |> Option.map (fun a' -> Pair(a', b))
         |> Option.orElseWith (fun () -> split b |> Option.map (fun b' -> Pair(a, b')))
     | Num x when x >= 10 ->
-        let a = x / 2L
+        let a = x / 2
         let b = x - a
         Some <| Pair(Num a, Num b)
     | _ -> None
@@ -102,7 +102,7 @@ let rec magnitude =
     | Pair (a, b) ->
         let ma = magnitude a
         let mb = magnitude b
-        3L * ma + 2L * mb
+        3 * ma + 2 * mb
 
 let fishSum = List.reduce add
 
@@ -146,8 +146,8 @@ let testInput =
 let testSum1 = testInput |> parse |> fishSum |> render
 assert (testSum1 = "[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]")
 
-let testAnswer1 = 4140L
-let testAnswer2 = 3993L
+let testAnswer1 = 4140
+let testAnswer2 = 3993
 let result1 = testInput |> fullTask1
 assert (result1 = testAnswer1)
 let result2 = testInput |> fullTask2
