@@ -43,15 +43,15 @@ let rec addLeft x p =
     | Num y -> Num(x + y)
     | Pair (a, b) -> Pair(addLeft x a, b)
 
-let rec explode n =
+let rec explode level =
     function
-    | Pair (Num a, Num b) when n = 4 -> Some(a, b, Num 0)
+    | Pair (Num a, Num b) when level >= 4 -> Some(a, b, Num 0)
     | Pair (a, b) ->
-        explode (n + 1) a
+        explode (level + 1) a
         |> Option.map (fun (cl, cr, a') -> cl, 0L, Pair(a', addLeft cr b))
         |> Option.orElseWith
             (fun () ->
-                explode (n + 1) b
+                explode (level + 1) b
                 |> Option.map (fun (cl, cr, b') -> 0L, cr, Pair(addRight cl a, b')))
     | _ -> None
 
