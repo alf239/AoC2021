@@ -1,4 +1,3 @@
-open System.Collections.Generic
 open AoC.Magic
 open Microsoft.FSharp.Core
 
