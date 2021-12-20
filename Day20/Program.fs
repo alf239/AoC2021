@@ -18,7 +18,7 @@ let parse s =
         |> Seq.collect id
         |> Set.ofSeq
 
-    lookup, image, false
+    (fun code -> Set.contains code lookup), image
 
 let valueAt x y image def =
     let value = image |> Set.contains (x, y)
@@ -26,29 +26,23 @@ let valueAt x y image def =
 
 let codeAt x y image def =
     let get x y = boolToInt <| valueAt x y image def
-    let b8 = get (x - 1) (y - 1)
-    let b7 = get x (y - 1)
-    let b6 = get (x + 1) (y - 1)
-    let b5 = get (x - 1) y
-    let b4 = get x y
-    let b3 = get (x + 1) y
-    let b2 = get (x - 1) (y + 1)
-    let b1 = get x (y + 1)
-    let b0 = get (x + 1) (y + 1)
 
-    b0
-    + 2 * b1
-    + 4 * b2
-    + 8 * b3
-    + 16 * b4
-    + 32 * b5
-    + 64 * b6
-    + 128 * b7
-    + 256 * b8
+    get (x + 1) (y + 1)
+    + 2 * get x (y + 1)
+    + 4 * get (x - 1) (y + 1)
+    + 8 * get (x + 1) y
+    + 16 * get x y
+    + 32 * get (x - 1) y
+    + 64 * get (x + 1) (y - 1)
+    + 128 * get x (y - 1)
+    + 256 * get (x - 1) (y - 1)
 
-let step lookup (image: Set<int * int>) def =
+let step algo (image: Set<int * int>) def =
     let xs = image |> Set.map fst
     let ys = image |> Set.map snd
+
+    let emptySpace = if def then 512 - 1 else 0
+    let newDef = algo emptySpace
 
     let dots =
         seq {
@@ -56,20 +50,24 @@ let step lookup (image: Set<int * int>) def =
                 for y in (Set.minElement ys - 1) .. (Set.maxElement ys + 1) do
                     let code = codeAt x y image def
 
-                    if lookup |> Set.contains code then
-                        yield x, y
+                    if (algo code) <> newDef then yield x, y
         }
         |> Set.ofSeq
 
-    dots, def
+    dots, newDef
 
-let task1 (lookup, image, def) =
-    let i1, d1 = step lookup image def
-    let i2, d2 = step lookup i1 d1
+let twoSteps algo image =
+    let i1, d1 = step algo image false
+    let i2, d2 = step algo i1 d1
     assert (not d2)
-    i2 |> Set.count
+    i2
 
-let task2 _ = -2
+let task1 (algo, image) = twoSteps algo image |> Set.count
+
+let task2 (algo, image) =
+    Seq.iterate (fun img -> Some <| twoSteps algo img) image
+    |> Seq.item (50 / 2)
+    |> Set.count
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
@@ -91,7 +89,7 @@ let testInput =
 ..###"
 
 let testAnswer1 = 35
-let testAnswer2 = -2
+let testAnswer2 = 3351
 let result1 = testInput |> fullTask1
 assert (result1 = testAnswer1)
 let result2 = testInput |> fullTask2
