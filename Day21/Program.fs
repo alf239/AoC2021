@@ -41,52 +41,71 @@ let stats =
     |> Seq.countBy (fun (a, (b, c)) -> a + b + c)
     |> List.ofSeq
 
-let task2 (a, b) =
-    let dpA =
-        [| for _step in 0 .. 9 -> [| for _pos in 0 .. 9 -> [| for _score in 0 .. 20 -> 0L |] |] |]
+let stepBack pos d = (pos + 10 - d) % 10 
 
-    let dpB =
-        [| for _step in 0 .. 9 -> [| for _pos in 0 .. 9 -> [| for _score in 0 .. 20 -> 0L |] |] |]
+let countWays (dp: int64 [] [] [] []) ap bp asc bsc =
+    let prevAsc = asc - ap - 1
+    let prevBsc = bsc - bp - 1
 
-    dpA.[0].[a - 1].[0] <- 1L
-    dpB.[0].[b - 1].[0] <- 1L
-
-    let collectOptions (dp: int64 [] [] []) step pos score =
-        stats
+    if prevAsc < 0
+       || prevBsc < 0
+       || prevAsc > 20
+       || prevBsc > 20 then
+        0L
+    else
+        Seq.allPairs stats stats
         |> Seq.map
-            (fun (dice, count) ->
-                let prevScore = score - dice
+            (fun ((ad, ac), (bd, bc)) ->
+                let prevAp = ap |> stepBack ad
+                let prevBp = bp |> stepBack bd
+                let count = int64 <| ac * bc
 
-                if prevScore > 20 || prevScore < 0 then
-                    0L
-                else
-                    let prevPos = (pos + 10 - dice) % 10
-
-                    dp.[step - 1].[prevPos].[prevScore]
-                    * (int64 count))
+                dp.[prevAp].[prevBp].[prevAsc].[prevBsc] * count)
         |> Seq.sum
 
-    for step in [ 1 .. 9 ] do
-        for pos in [ 0 .. 9 ] do
-            for score in [ 0 .. 20 ] do
-                dpA.[step].[pos].[score] <- collectOptions dpA step pos score
-                dpB.[step].[pos].[score] <- collectOptions dpB step pos score
+let countFirstWins (dp: int64 [] [] [] []) =
+    seq {
+        for ap in 0 .. 9 do
+            for asc in 21 .. 29 do
+                let prevAsc = asc - ap - 1
+                if prevAsc >= 0 && prevAsc < 21 then
+                    for ad, ac in stats do
+                        let prevAp = ap |> stepBack ad
+                        let count = int64 <| ac
+                        for prevBp in 0 .. 9 do
+                            for prevBsc in 0 .. 20 do
+                                yield dp.[prevAp].[prevBp].[prevAsc].[prevBsc] * count
+    }
+    |> Seq.sum
 
-    let aWins =
-        seq {
-            for step in [ 3 .. 9 ] do
-                for pos in [ 0 .. 9 ] do
-                    for score in [ 21 .. 30 ] do
-                        yield 
-        } |> Seq.sum
-    let bWins =
-        seq {
-            for step in [ 3 .. 9 ] do
-                for pos in [ 0 .. 9 ] do
-                    for score in [ 12 .. 20 ] do
-        } |> Seq.sum
-   
-    max aWins bWins
+let task2 (a, b) =
+    let maxSteps = 21
+    let dp =
+        [| for _step in 0 .. maxSteps ->
+               [| for _aPos in 0 .. 9 ->
+                      [| for _bPos in 0 .. 9 -> [| for _aScore in 0 .. 20 -> [| for _bScore in 0 .. 20 -> 0L |] |] |] |] |]
+
+    dp.[0].[a - 1].[b - 1].[0].[0] <- 1L
+
+    let mutable aWon = 0L
+    let mutable bWon = 0L
+
+    for step in 1 .. maxSteps do
+        aWon <- aWon + countFirstWins dp.[step - 1]
+
+        for ap in 0 .. 9 do
+            for bp in 0 .. 9 do
+                for asc in 1 .. 20 do
+                    for bsc in 1 .. 20 do
+                        let ways = countWays dp.[step - 1] ap bp asc bsc
+                        dp.[step].[ap].[bp].[asc].[bsc] <- ways
+
+                    for bsc in 21 .. 29 do
+                        let ways = countWays dp.[step - 1] ap bp asc bsc
+                        bWon <- bWon + ways
+
+    max aWon bWon
+
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
 
@@ -94,7 +113,7 @@ let testInput =
     "Player 1 starting position: 4\n\Player 2 starting position: 8"
 
 let testAnswer1 = 739785L
-let testAnswer2 = 444356092776315L
+let testAnswer2 = 444_356_092_776_315L
 let result1 = testInput |> fullTask1
 assert (result1 = testAnswer1)
 let result2 = testInput |> fullTask2
