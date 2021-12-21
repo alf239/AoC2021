@@ -34,9 +34,59 @@ let task1 (a, b) =
 
     rolled * (min scoreA scoreB) |> int64
 
+let stats =
+    let die = [ 1 .. 3 ]
 
-let task2 data = -2L
+    Seq.allPairs die (Seq.allPairs die die)
+    |> Seq.countBy (fun (a, (b, c)) -> a + b + c)
+    |> List.ofSeq
 
+let task2 (a, b) =
+    let dpA =
+        [| for _step in 0 .. 9 -> [| for _pos in 0 .. 9 -> [| for _score in 0 .. 20 -> 0L |] |] |]
+
+    let dpB =
+        [| for _step in 0 .. 9 -> [| for _pos in 0 .. 9 -> [| for _score in 0 .. 20 -> 0L |] |] |]
+
+    dpA.[0].[a - 1].[0] <- 1L
+    dpB.[0].[b - 1].[0] <- 1L
+
+    let collectOptions (dp: int64 [] [] []) step pos score =
+        stats
+        |> Seq.map
+            (fun (dice, count) ->
+                let prevScore = score - dice
+
+                if prevScore > 20 || prevScore < 0 then
+                    0L
+                else
+                    let prevPos = (pos + 10 - dice) % 10
+
+                    dp.[step - 1].[prevPos].[prevScore]
+                    * (int64 count))
+        |> Seq.sum
+
+    for step in [ 1 .. 9 ] do
+        for pos in [ 0 .. 9 ] do
+            for score in [ 0 .. 20 ] do
+                dpA.[step].[pos].[score] <- collectOptions dpA step pos score
+                dpB.[step].[pos].[score] <- collectOptions dpB step pos score
+
+    let aWins =
+        seq {
+            for step in [ 3 .. 9 ] do
+                for pos in [ 0 .. 9 ] do
+                    for score in [ 21 .. 30 ] do
+                        yield 
+        } |> Seq.sum
+    let bWins =
+        seq {
+            for step in [ 3 .. 9 ] do
+                for pos in [ 0 .. 9 ] do
+                    for score in [ 12 .. 20 ] do
+        } |> Seq.sum
+   
+    max aWins bWins
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
 
@@ -44,7 +94,7 @@ let testInput =
     "Player 1 starting position: 4\n\Player 2 starting position: 8"
 
 let testAnswer1 = 739785L
-let testAnswer2 = -2L
+let testAnswer2 = 444356092776315L
 let result1 = testInput |> fullTask1
 assert (result1 = testAnswer1)
 let result2 = testInput |> fullTask2
