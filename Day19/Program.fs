@@ -33,10 +33,10 @@ let rotations =
       fun (x, y, z) -> (z, -y, x)
       fun (x, y, z) -> (-y, -z, x)
       
-      fun (x, y, z) -> (-z, y, -x)
-      fun (x, y, z) -> (y, z, -x)
-      fun (x, y, z) -> (z, -y, -x)
-      fun (x, y, z) -> (-y, -z, -x)
+      fun (x, y, z) -> (z, y, -x)
+      fun (x, y, z) -> (y, -z, -x)
+      fun (x, y, z) -> (-z, -y, -x)
+      fun (x, y, z) -> (-y, z, -x)
       ]
 
 let parseSingleScanner ls =
