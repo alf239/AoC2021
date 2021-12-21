@@ -89,30 +89,22 @@ let task2 (a, b) =
     let mutable aWins = 0L
     let mutable bWins = 0L
 
+    let count (fn: State -> bool) (ss: (State * int64) list) =
+        ss
+        |> Seq.filter (fst >> fn)
+        |> Seq.map snd
+        |> Seq.sum
+
     while ss |> Seq.isEmpty |> not do
         ss <- stepA ss
-
-        aWins <-
-            aWins
-            + (ss
-               |> Seq.filter (fst >> aWon)
-               |> Seq.map snd
-               |> Seq.sum)
-
+        aWins <- aWins + count aWon ss
         ss <- ss |> List.filter (fst >> aWon >> not)
 
         ss <- stepB ss
-
-        bWins <-
-            bWins
-            + (ss
-               |> Seq.filter (fst >> bWon)
-               |> Seq.map snd
-               |> Seq.sum)
-
+        bWins <- bWins + count bWon ss
         ss <- ss |> List.filter (fst >> bWon >> not)
 
-    max aWins bWins 
+    max aWins bWins
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
