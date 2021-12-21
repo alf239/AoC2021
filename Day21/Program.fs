@@ -41,51 +41,30 @@ let stats =
     |> Seq.countBy (fun (a, (b, c)) -> a + b + c)
     |> List.ofSeq
 
-type State =
-    { APos: int
-      BPos: int
-      AScore: int
-      BScore: int }
+type State = (int * int) []
 
-let aWon s = s.AScore >= 21
-let bWon s = s.BScore >= 21
+let pos n (s: State) = fst s.[n]
+let score n (s: State) = snd s.[n]
+let won n (s: State) = (score n s) >= 21
 
-let stepA ss =
+let step n (ss: (State * int64) list) =
     ss
     |> Seq.collect
         (fun (s, count) ->
             seq {
                 for d, cnt in stats ->
-                    let p = (s.APos + d) % 10
-                    let score = s.AScore + p + 1
-                    { s with APos = p; AScore = score }, (int64 cnt) * count
-            })
-    |> Seq.groupBy fst
-    |> Seq.map (fun (s, ss) -> s, ss |> Seq.map snd |> Seq.sum)
-    |> List.ofSeq
-
-let stepB ss =
-    ss
-    |> Seq.collect
-        (fun (s, count) ->
-            seq {
-                for d, cnt in stats ->
-                    let p = (s.BPos + d) % 10
-                    let score = s.BScore + p + 1
-                    { s with BPos = p; BScore = score }, (int64 cnt) * count
+                    let p = ((pos n s) + d) % 10
+                    let sc = (score n s) + p + 1
+                    let newS = Array.copy s
+                    newS.[n] <- p, sc
+                    newS, (int64 cnt) * count
             })
     |> Seq.groupBy fst
     |> Seq.map (fun (s, ss) -> s, ss |> Seq.map snd |> Seq.sum)
     |> List.ofSeq
 
 let task2 (a, b) =
-    let mutable ss =
-        [ { APos = a - 1
-            BPos = b - 1
-            AScore = 0
-            BScore = 0 },
-          1L ]
-
+    let mutable ss = [ [| a - 1, 0; b - 1, 0 |], 1L ]
     let mutable aWins = 0L
     let mutable bWins = 0L
 
@@ -96,13 +75,13 @@ let task2 (a, b) =
         |> Seq.sum
 
     while ss |> Seq.isEmpty |> not do
-        ss <- stepA ss
-        aWins <- aWins + count aWon ss
-        ss <- ss |> List.filter (fst >> aWon >> not)
+        ss <- step 0 ss
+        aWins <- aWins + count (won 0) ss
+        ss <- ss |> List.filter (fst >> (won 0) >> not)
 
-        ss <- stepB ss
-        bWins <- bWins + count bWon ss
-        ss <- ss |> List.filter (fst >> bWon >> not)
+        ss <- step 1 ss
+        bWins <- bWins + count (won 1) ss
+        ss <- ss |> List.filter (fst >> (won 1) >> not)
 
     max aWins bWins
 
@@ -123,4 +102,7 @@ let realInput = taskInput 2021 21
 let realAnswer1 = realInput |> fullTask1
 assert (realAnswer1 = 742257L)
 printfn $"Day 21.1: {realAnswer1}"
-printfn $"Day 21.2: {realInput |> fullTask2}"
+
+let realAnswer2 = realInput |> fullTask2
+assert (realAnswer2 = 93726416205179L)
+printfn $"Day 21.2: {realAnswer2}"
