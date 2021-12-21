@@ -41,70 +41,78 @@ let stats =
     |> Seq.countBy (fun (a, (b, c)) -> a + b + c)
     |> List.ofSeq
 
-let stepBack pos d = (pos + 10 - d) % 10 
+type State =
+    { APos: int
+      BPos: int
+      AScore: int
+      BScore: int }
 
-let countWays (dp: int64 [] [] [] []) ap bp asc bsc =
-    let prevAsc = asc - ap - 1
-    let prevBsc = bsc - bp - 1
+let aWon s = s.AScore >= 21
+let bWon s = s.BScore >= 21
 
-    if prevAsc < 0
-       || prevBsc < 0
-       || prevAsc > 20
-       || prevBsc > 20 then
-        0L
-    else
-        Seq.allPairs stats stats
-        |> Seq.map
-            (fun ((ad, ac), (bd, bc)) ->
-                let prevAp = ap |> stepBack ad
-                let prevBp = bp |> stepBack bd
-                let count = int64 <| ac * bc
+let stepA ss =
+    ss
+    |> Seq.collect
+        (fun (s, count) ->
+            seq {
+                for d, cnt in stats ->
+                    let p = (s.APos + d) % 10
+                    let score = s.AScore + p + 1
+                    { s with APos = p; AScore = score }, (int64 cnt) * count
+            })
+    |> Seq.groupBy fst
+    |> Seq.map (fun (s, ss) -> s, ss |> Seq.map snd |> Seq.sum)
+    |> List.ofSeq
 
-                dp.[prevAp].[prevBp].[prevAsc].[prevBsc] * count)
-        |> Seq.sum
-
-let countFirstWins (dp: int64 [] [] [] []) =
-    seq {
-        for ap in 0 .. 9 do
-            for asc in 21 .. 29 do
-                let prevAsc = asc - ap - 1
-                if prevAsc >= 0 && prevAsc < 21 then
-                    for ad, ac in stats do
-                        let prevAp = ap |> stepBack ad
-                        let count = int64 <| ac
-                        for prevBp in 0 .. 9 do
-                            for prevBsc in 0 .. 20 do
-                                yield dp.[prevAp].[prevBp].[prevAsc].[prevBsc] * count
-    }
-    |> Seq.sum
+let stepB ss =
+    ss
+    |> Seq.collect
+        (fun (s, count) ->
+            seq {
+                for d, cnt in stats ->
+                    let p = (s.BPos + d) % 10
+                    let score = s.BScore + p + 1
+                    { s with BPos = p; BScore = score }, (int64 cnt) * count
+            })
+    |> Seq.groupBy fst
+    |> Seq.map (fun (s, ss) -> s, ss |> Seq.map snd |> Seq.sum)
+    |> List.ofSeq
 
 let task2 (a, b) =
-    let maxSteps = 21
-    let dp =
-        [| for _step in 0 .. maxSteps ->
-               [| for _aPos in 0 .. 9 ->
-                      [| for _bPos in 0 .. 9 -> [| for _aScore in 0 .. 20 -> [| for _bScore in 0 .. 20 -> 0L |] |] |] |] |]
+    let mutable ss =
+        [ { APos = a - 1
+            BPos = b - 1
+            AScore = 0
+            BScore = 0 },
+          1L ]
 
-    dp.[0].[a - 1].[b - 1].[0].[0] <- 1L
+    let mutable aWins = 0L
+    let mutable bWins = 0L
 
-    let mutable aWon = 0L
-    let mutable bWon = 0L
+    while ss |> Seq.isEmpty |> not do
+        ss <- stepA ss
 
-    for step in 1 .. maxSteps do
-        aWon <- aWon + countFirstWins dp.[step - 1]
+        aWins <-
+            aWins
+            + (ss
+               |> Seq.filter (fst >> aWon)
+               |> Seq.map snd
+               |> Seq.sum)
 
-        for ap in 0 .. 9 do
-            for bp in 0 .. 9 do
-                for asc in 1 .. 20 do
-                    for bsc in 1 .. 20 do
-                        let ways = countWays dp.[step - 1] ap bp asc bsc
-                        dp.[step].[ap].[bp].[asc].[bsc] <- ways
+        ss <- ss |> List.filter (fst >> aWon >> not)
 
-                    for bsc in 21 .. 29 do
-                        let ways = countWays dp.[step - 1] ap bp asc bsc
-                        bWon <- bWon + ways
+        ss <- stepB ss
 
-    max aWon bWon
+        bWins <-
+            bWins
+            + (ss
+               |> Seq.filter (fst >> bWon)
+               |> Seq.map snd
+               |> Seq.sum)
+
+        ss <- ss |> List.filter (fst >> bWon >> not)
+
+    max aWins bWins 
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
