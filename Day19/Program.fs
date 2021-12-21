@@ -97,7 +97,7 @@ let align a b =
 
     |> Seq.tryHead
 
-let task1 data =
+let solve data =
     let mutable solved = [ data |> List.head ]
     let mutable front = solved
     let mutable remaining = data |> List.tail |> Set.ofList
@@ -115,12 +115,16 @@ let task1 data =
         solved <- List.concat [solved ; front]
 
     solved
-    |> Seq.collect (fun sc -> sc.Beacons)
-    |> Set.ofSeq
-    |> Set.count
 
+let task1 = solve >> Seq.collect (fun sc -> sc.Beacons) >> Seq.distinct >> Seq.length
 
-let task2 data = -2
+let task2 data =
+    let scanners = solve data |> Seq.map (fun sc -> sc.Position)
+    let distances =
+        Seq.allPairs scanners scanners
+        |> Seq.map (fun (a, b) -> minus a b)
+        |> Seq.map (fun (x, y, z) -> abs x + abs y + abs z)
+    distances |> Seq.max
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
@@ -265,7 +269,7 @@ let testInput =
 30,-46,-14"
 
 let testAnswer1 = 79
-let testAnswer2 = -2
+let testAnswer2 = 3621
 
 let result1 = testInput |> fullTask1
 assert (result1 = testAnswer1)
