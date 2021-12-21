@@ -1,16 +1,57 @@
 open AoC.Magic
 
+type Point = int * int * int
+type Scanner = { Id: int  ; Position : Point ; Beacons : Set<Point> ; Rotations : Set<Point> List}
+
+let rotations =
+    [ fun (x, y, z) -> (x, y, z)
+      fun (x, y, z) -> (x, z, -y)
+      fun (x, y, z) -> (x, -y, -z)
+      fun (x, y, z) -> (x, -z, y)
+      
+      fun (x, y, z) -> (-x, y, -z)
+      fun (x, y, z) -> (-x, -z, -y)
+      fun (x, y, z) -> (-x, -y, z)
+      fun (x, y, z) -> (-x, z, y)
+      
+      fun (x, y, z) -> (-y, x, z)
+      fun (x, y, z) -> (z, x, y)
+      fun (x, y, z) -> (y, x, -z)
+      fun (x, y, z) -> (-z, x, -y)
+      
+      fun (x, y, z) -> (y, -x, z)
+      fun (x, y, z) -> (z, -x, -y)
+      fun (x, y, z) -> (-y, -x, -z)
+      fun (x, y, z) -> (-z, -x, y)
+      
+      fun (x, y, z) -> (-z, y, x)
+      fun (x, y, z) -> (y, z, x)
+      fun (x, y, z) -> (z, -y, x)
+      fun (x, y, z) -> (-y, -z, x)
+      
+      fun (x, y, z) -> (-z, y, -x)
+      fun (x, y, z) -> (y, z, -x)
+      fun (x, y, z) -> (z, -y, -x)
+      fun (x, y, z) -> (-y, -z, -x)
+      ]
+
 let parseSingleScanner ls =
-    ls
-    |> Seq.rev
-    |> Seq.tail
-    |> Seq.map csInts
-    |> List.ofSeq
+    let id = ls |> Seq.last |> words |> fun a -> int a[2]
+    let beacons = 
+        ls
+        |> Seq.rev
+        |> Seq.tail
+        |> Seq.map (csInts >> (fun [| x; y; z |] -> x, y, z))
+        |> Set.ofSeq
+    { Id = id
+      Position = 0,0,0
+      Beacons = beacons
+      Rotations = rotations |> List.map (fun tr -> Set.map tr beacons) }
 
 let parse s =
     let ls = lines s |> Seq.map (fun s -> s.Trim())
 
-    ls
+    Seq.append ls [""] 
     |> Seq.scan
         (fun (_, acc) s ->
             if s = "" then
@@ -19,42 +60,56 @@ let parse s =
                 None, s :: acc)
         (None, [])
     |> Seq.choose fst
+    |> Seq.filter (List.isEmpty >> not)
     |> Seq.map parseSingleScanner
     |> List.ofSeq
 
-let permutations =
-    [ fun [| x; y; z |] -> [| x; y; z |]
-      fun [| x; y; z |] -> [| x; z; -y |]
-      fun [| x; y; z |] -> [| x; -y; -z |]
-      fun [| x; y; z |] -> [| x; -z; y |]
-      fun [| x; y; z |] -> [| -x; y; -z |]
-      fun [| x; y; z |] -> [| -x; -z; -y |]
-      fun [| x; y; z |] -> [| -x; -y; z |]
-      fun [| x; y; z |] -> [| -x; z; y |]
-      fun [| x; y; z |] -> [| -y; x; z |]
-      fun [| x; y; z |] -> [| z; x; y |]
-      fun [| x; y; z |] -> [| y; x; -z |]
-      fun [| x; y; z |] -> [| -z; x; -y |]
-      fun [| x; y; z |] -> [| y; -x; z |]
-      fun [| x; y; z |] -> [| z; -x; -y |]
-      fun [| x; y; z |] -> [| -y; -x; -z |]
-      fun [| x; y; z |] -> [| -z; -x; y |]
-      fun [| x; y; z |] -> [| -z; y; x |]
-      fun [| x; y; z |] -> [| y; -z; x |]
-      fun [| x; y; z |] -> [| -z; -y; x |]
-      fun [| x; y; z |] -> [| -y; z; x |]
-      fun [| x; y; z |] -> [| z; y; -x |]
-      fun [| x; y; z |] -> [| y; -z; -x |]
-      fun [| x; y; z |] -> [| -z; -y; -x |]
-      fun [| x; y; z |] -> [| -y; z; -x |] ]
+let minus (x1, y1, z1) (x2, y2, z2) =
+    x1 - x2, y1 - y2, z1 - z2
+
+let plus (x1, y1, z1) (x2, y2, z2) =
+    x1 + x2, y1 + y2, z1 + z2
 
 let align a b =
-    
+    b.Rotations
+    |> Seq.choose (fun b' ->
+                        let candidate = 
+                            Seq.allPairs a.Beacons b'
+                            |> Seq.map (fun (a, b) -> minus a b) 
+                            |> Seq.countBy id
+                            |> Seq.tryFind (fun (_, cnt) -> cnt >= 12)
+                            |> Option.map fst
+                        
+                        candidate
+                        |> Option.map (fun d ->
+                              { Id = b.Id
+                                Position = d
+                                Beacons = b' |> Set.map (plus d)
+                                Rotations = b.Rotations }))
+    |> Seq.tryHead
 
 let task1 data =
-    let solved = data |> List.head
-    let remaining = data |> List.tail
-    99
+    let mutable solved = [ data |> List.head ]
+    let mutable front = solved
+    let mutable remaining = data |> List.tail |> Set.ofList
+
+    while remaining |> Set.isEmpty |> not do
+        let mutable newFront = []
+        for a in front do
+            for b in remaining do
+                match align a b with
+                | Some b' ->
+                    newFront <- b' :: newFront
+                    remaining <- remaining |> Set.remove b
+                | None -> ()
+        front <- newFront
+        solved <- List.concat [solved ; front]
+
+    solved
+    |> Seq.collect (fun sc -> sc.Beacons)
+    |> Set.ofSeq
+    |> Set.count
+
 
 let task2 data = -2
 
@@ -62,7 +117,7 @@ let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
 
 let testInput =
-        "\
+    "\
 --- scanner 0 ---
 404,-588,-901
 528,-643,409
