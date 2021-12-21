@@ -1,10 +1,14 @@
 open AoC.Magic
 
 type Point = int * int * int
-type Scanner = { Id: int  ; Position : Point ; Beacons : Set<Point> ; Rotations : Set<Point> List}
+type Scanner =
+    { Id: int
+      Position : Point
+      Beacons : Set<Point>
+      Rotations : Set<Point> List }
 
 let rotations =
-    [ fun (x, y, z) -> (x, y, z)
+    [ id
       fun (x, y, z) -> (x, z, -y)
       fun (x, y, z) -> (x, -y, -z)
       fun (x, y, z) -> (x, -z, y)
@@ -64,28 +68,33 @@ let parse s =
     |> Seq.map parseSingleScanner
     |> List.ofSeq
 
-let minus (x1, y1, z1) (x2, y2, z2) =
-    x1 - x2, y1 - y2, z1 - z2
+let minus (x1, y1, z1) (x2, y2, z2) = x1 - x2, y1 - y2, z1 - z2
 
-let plus (x1, y1, z1) (x2, y2, z2) =
-    x1 + x2, y1 + y2, z1 + z2
+let plus (x1, y1, z1) (x2, y2, z2) = x1 + x2, y1 + y2, z1 + z2
 
 let align a b =
     b.Rotations
     |> Seq.choose (fun b' ->
-                        let candidate = 
+                        let ds = 
                             Seq.allPairs a.Beacons b'
                             |> Seq.map (fun (a, b) -> minus a b) 
                             |> Seq.countBy id
-                            |> Seq.tryFind (fun (_, cnt) -> cnt >= 12)
-                            |> Option.map fst
+                            |> Seq.filter (snd >> (fun cnt -> cnt >= 12))
+                            |> Seq.map fst 
                         
-                        candidate
-                        |> Option.map (fun d ->
-                              { Id = b.Id
-                                Position = d
-                                Beacons = b' |> Set.map (plus d)
-                                Rotations = b.Rotations }))
+                        let matches = 
+                            ds
+                            |> Seq.choose (fun d ->
+                                            let beacons = b' |> Set.map (plus d)
+                                            if (beacons |> Set.intersect a.Beacons |> Set.count) >= 12 then  
+                                                Some { Id = b.Id
+                                                       Position = d
+                                                       Beacons = b' |> Set.map (plus d)
+                                                       Rotations = b.Rotations }
+                                            else None)
+                        assert (Seq.length matches <= 1)
+                        matches |> Seq.tryHead)
+
     |> Seq.tryHead
 
 let task1 data =

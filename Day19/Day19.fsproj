@@ -6,11 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Program.fs" />
+        <Compile Include="Program.fs"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AoC\AoC.fsproj" />
+        <ProjectReference Include="..\AoC\AoC.fsproj"/>
     </ItemGroup>
 
 </Project>
