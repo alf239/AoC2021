@@ -89,7 +89,8 @@ let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
 
 let testInput =
-    "Player 1 starting position: 4\n\Player 2 starting position: 8"
+    "Player 1 starting position: 4\n\
+    Player 2 starting position: 8"
 
 let testAnswer1 = 739785L
 let testAnswer2 = 444_356_092_776_315L
