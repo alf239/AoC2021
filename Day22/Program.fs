@@ -14,10 +14,13 @@ let parse =
             let [| xs; ys; zs |] = commaSeparated coords
             flip = "on", parseRange xs, parseRange ys, parseRange zs)
 
+let disjunct ((xn1, xx1), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)) =
+    xx1 < xn2 || xn1 > xx2 || yx1 < yn2 || yn1 > yx2 || zx1 < zn2 || zn1 > zx2
+
 let task1 data =
     let map = HashSet()
     for flip, (xn, xx), (yn, yx), (zn, zx) in data do
-        if xn <= 50 && xx >= -50 && yn <= 50 && yx >= -50 && zn <= 50 && zx >= -50 then
+        if not <| disjunct ((xn, xx), (yn, yx), (zn, zx)) ((-50, 50), (-50, 50), (-50, 50)) then 
             for x in (max xn -50) ..(min xx 50) do 
                 for y in (max yn -50) ..(min yx 50) do 
                     for z in (max zn -50) ..(min zx 50) do
@@ -26,6 +29,13 @@ let task1 data =
                         else
                             map.Remove((x, y, z)) |> ignore
     map.Count |> int64
+
+
+let add ((xn1, xx1), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)) =
+    if disjunct ((xn1, xx1), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)) then
+        [ (xn1, xx1), (yn1, yx1), (zn1, zx1); (xn2, xx2), (yn2, yx2), (zn2, zx2) ]
+    else
+        []
 
 let task2 data = -2L
 
@@ -96,7 +106,7 @@ on x=-53470..21291,y=-120233..-33476,z=-44150..38147
 off x=-93533..-4276,y=-16170..68771,z=-104985..-24507"
 
 let testAnswer1 = 474140L
-let testAnswer2 = -2L
+let testAnswer2 = 2758514936282235L
 let result1 = testInput |> fullTask1
 assert (result1 = testAnswer1)
 let result2 = testInput |> fullTask2
