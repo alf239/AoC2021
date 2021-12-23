@@ -31,11 +31,14 @@ let task1 data =
     map.Count |> int64
 
 
-let add ((xn1, xx1), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)) =
+let subtract ((xn1, xx1), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)) =
     if disjunct ((xn1, xx1), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)) then
-        [ (xn1, xx1), (yn1, yx1), (zn1, zx1); (xn2, xx2), (yn2, yx2), (zn2, zx2) ]
+        [ (xn1, xx1), (yn1, yx1), (zn1, zx1) ]
     else
         []
+
+let add a b =
+    List.append [ a ] (subtract a b) 
 
 let task2 data = -2L
 
