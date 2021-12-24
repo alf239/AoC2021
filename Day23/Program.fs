@@ -41,9 +41,232 @@ let initial x xs =
     else
         Initial xs
 
-let moves n p =
-    let cost a x = (unitCost a) * x
+let cost a x = (unitCost a) * x
 
+let movesFromA n p =
+    let { Hallway = l2, l1, ab, bc, cd, r1, r2
+          Rooms = a, b, c, d } =
+        p
+
+    match a with
+    | Initial (x :: rest) ->
+        let rms = initial A rest, b, c, d
+        let exit = n - List.length rest
+
+        seq {
+            if l1 = None then
+                yield
+                    { Hallway = l2, Some x, ab, bc, cd, r1, r2
+                      Rooms = rms },
+                    cost x <| 1 + exit
+
+                if l2 = None then
+                    yield
+                        { Hallway = Some x, None, ab, bc, cd, r1, r2
+                          Rooms = rms },
+                        cost x <| 2 + exit
+
+            if ab = None then
+                yield
+                    { Hallway = l2, l1, Some x, bc, cd, r1, r2
+                      Rooms = rms },
+                    cost x <| 1 + exit
+
+                if bc = None then
+                    yield
+                        { Hallway = l2, l1, None, Some x, cd, r1, r2
+                          Rooms = rms },
+                        cost x <| 3 + exit
+
+                    if cd = None then
+                        yield
+                            { Hallway = l2, l1, None, None, Some x, r1, r2
+                              Rooms = rms },
+                            cost x <| 5 + exit
+
+                        if r1 = None then
+                            yield
+                                { Hallway = l2, l1, None, None, None, Some x, r2
+                                  Rooms = rms },
+                                cost x <| 7 + exit
+
+                            if r2 = None then
+                                yield
+                                    { Hallway = l2, l1, None, None, None, None, Some x
+                                      Rooms = rms },
+                                    cost x <| 8 + exit
+        }
+    | Filling _ -> []
+
+let movesFromB n p =
+    let { Hallway = l2, l1, ab, bc, cd, r1, r2
+          Rooms = a, b, c, d } =
+        p
+
+    match b with
+    | Initial (x :: rest) ->
+        let rms = a, initial B rest, c, d
+        let exit = n - List.length rest
+
+        seq {
+            if ab = None then
+                yield
+                    { Hallway = l2, l1, Some x, bc, cd, r1, r2
+                      Rooms = rms },
+                    cost x <| 1 + exit
+
+                if l1 = None then
+                    yield
+                        { Hallway = l2, Some x, None, bc, cd, r1, r2
+                          Rooms = rms },
+                        cost x <| 3 + exit
+
+                    if l2 = None then
+                        yield
+                            { Hallway = Some x, None, None, bc, cd, r1, r2
+                              Rooms = rms },
+                            cost x <| 4 + exit
+
+            if bc = None then
+                yield
+                    { Hallway = l2, l1, ab, Some x, cd, r1, r2
+                      Rooms = rms },
+                    cost x <| 1 + exit
+
+                if cd = None then
+                    yield
+                        { Hallway = l2, l1, ab, None, Some x, r1, r2
+                          Rooms = rms },
+                        cost x <| 3 + exit
+
+                    if r1 = None then
+                        yield
+                            { Hallway = l2, l1, ab, None, None, Some x, r2
+                              Rooms = rms },
+                            cost x <| 5 + exit
+
+                        if r2 = None then
+                            yield
+                                { Hallway = l2, l1, ab, None, None, None, Some x
+                                  Rooms = rms },
+                                cost x <| 6 + exit
+        }
+    | Filling _ -> []
+
+
+let movesFromC n p =
+    let { Hallway = l2, l1, ab, bc, cd, r1, r2
+          Rooms = a, b, c, d } =
+        p
+
+    match c with
+    | Initial (x :: rest) ->
+        let rms = a, b, initial C rest, d
+        let exit = n - List.length rest
+
+        seq {
+            if bc = None then
+                yield
+                    { Hallway = l2, l1, ab, Some x, cd, r1, r2
+                      Rooms = rms },
+                    cost x <| 1 + exit
+
+                if ab = None then
+                    yield
+                        { Hallway = l2, l1, Some x, None, cd, r1, r2
+                          Rooms = rms },
+                        cost x <| 3 + exit
+
+                    if l1 = None then
+                        yield
+                            { Hallway = l2, Some x, None, None, cd, r1, r2
+                              Rooms = rms },
+                            cost x <| 5 + exit
+
+                        if l2 = None then
+                            yield
+                                { Hallway = Some x, None, None, None, cd, r1, r2
+                                  Rooms = rms },
+                                cost x <| 6 + exit
+
+            if cd = None then
+                yield
+                    { Hallway = l2, l1, ab, bc, Some x, r1, r2
+                      Rooms = rms },
+                    cost x <| 1 + exit
+
+                if r1 = None then
+                    yield
+                        { Hallway = l2, l1, ab, bc, None, Some x, r2
+                          Rooms = rms },
+                        cost x <| 3 + exit
+
+                    if r2 = None then
+                        yield
+                            { Hallway = l2, l1, ab, bc, None, None, Some x
+                              Rooms = rms },
+                            cost x <| 4 + exit
+        }
+    | Filling _ -> []
+
+
+let movesFromD n p =
+    let { Hallway = l2, l1, ab, bc, cd, r1, r2
+          Rooms = a, b, c, d } =
+        p
+
+    match d with
+    | Initial (x :: rest) ->
+        let rms = a, b, c, initial D rest
+        let exit = n - List.length rest
+
+        seq {
+            if cd = None then
+                yield
+                    { Hallway = l2, l1, ab, bc, Some x, r1, r2
+                      Rooms = rms },
+                    cost x <| 1 + exit
+
+                if bc = None then
+                    yield
+                        { Hallway = l2, l1, ab, Some x, None, r1, r2
+                          Rooms = rms },
+                        cost x <| 3 + exit
+
+                    if ab = None then
+                        yield
+                            { Hallway = l2, l1, Some x, None, None, r1, r2
+                              Rooms = rms },
+                            cost x <| 5 + exit
+
+                        if l1 = None then
+                            yield
+                                { Hallway = l2, Some x, None, None, None, r1, r2
+                                  Rooms = rms },
+                                cost x <| 7 + exit
+
+                            if l2 = None then
+                                yield
+                                    { Hallway = Some x, None, None, None, None, r1, r2
+                                      Rooms = rms },
+                                    cost x <| 8 + exit
+
+            if r1 = None then
+                yield
+                    { Hallway = l2, l1, ab, bc, cd, Some x, r2
+                      Rooms = rms },
+                    cost x <| 1 + exit
+
+                if r2 = None then
+                    yield
+                        { Hallway = l2, l1, ab, bc, cd, None, Some x
+                          Rooms = rms },
+                        cost x <| 2 + exit
+        }
+    | Filling _ -> []
+
+
+let moves n p =
     match p with
     // --- A in ---
     | { Hallway = (Some A, None, ab, bc, cd, r1, r2)
@@ -169,9 +392,9 @@ let moves n p =
         [ { Hallway = l2, l1, None, None, None, r1, r2
             Rooms = a, b, c, Filling(m + 1) },
           cost D <| 5 + (n - m) ]
-    | { Hallway = l2, l1, ab, Some D, cd, r1, r2
+    | { Hallway = l2, l1, ab, Some D, None, r1, r2
         Rooms = a, b, c, Filling m } ->
-        [ { Hallway = l2, l1, ab, None, cd, r1, r2
+        [ { Hallway = l2, l1, ab, None, None, r1, r2
             Rooms = a, b, c, Filling(m + 1) },
           cost D <| 3 + (n - m) ]
     | { Hallway = l2, l1, ab, bc, Some D, r1, r2
@@ -190,218 +413,12 @@ let moves n p =
             Rooms = a, b, c, Filling(m + 1) },
           cost D <| 2 + (n - m) ]
     // --- out ---
-    | { Hallway = l2, l1, ab, bc, cd, r1, r2
-        Rooms = a, b, c, d } ->
-        let fromA =
-            match a with
-            | Initial (x :: rest) ->
-                let rms = initial A rest, b, c, d
-                let exit = n - List.length rest
-
-                seq {
-                    if l1 = None then
-                        yield
-                            { Hallway = l2, Some x, ab, bc, cd, r1, r2
-                              Rooms = rms },
-                            cost x <| 1 + exit
-
-                        if l2 = None then
-                            yield
-                                { Hallway = Some x, None, ab, bc, cd, r1, r2
-                                  Rooms = rms },
-                                cost x <| 2 + exit
-
-                    if ab = None then
-                        yield
-                            { Hallway = l2, l1, Some x, bc, cd, r1, r2
-                              Rooms = rms },
-                            cost x <| 1 + exit
-
-                        if bc = None then
-                            yield
-                                { Hallway = l2, l1, None, Some x, cd, r1, r2
-                                  Rooms = rms },
-                                cost x <| 3 + exit
-
-                            if cd = None then
-                                yield
-                                    { Hallway = l2, l1, None, None, Some x, r1, r2
-                                      Rooms = rms },
-                                    cost x <| 5 + exit
-
-                                if r1 = None then
-                                    yield
-                                        { Hallway = l2, l1, None, None, None, Some x, r2
-                                          Rooms = rms },
-                                        cost x <| 7 + exit
-
-                                    if r2 = None then
-                                        yield
-                                            { Hallway = l2, l1, None, None, None, None, Some x
-                                              Rooms = rms },
-                                            cost x <| 8 + exit
-                }
-            | Filling _ -> []
-
-        let fromB =
-            match b with
-            | Initial (x :: rest) ->
-                let rms = a, initial B rest, c, d
-                let exit = n - List.length rest
-
-                seq {
-                    if ab = None then
-                        yield
-                            { Hallway = l2, l1, Some x, bc, cd, r1, r2
-                              Rooms = rms },
-                            cost x <| 1 + exit
-
-                        if l1 = None then
-                            yield
-                                { Hallway = l2, Some x, None, bc, cd, r1, r2
-                                  Rooms = rms },
-                                cost x <| 3 + exit
-
-                            if l2 = None then
-                                yield
-                                    { Hallway = Some x, None, None, bc, cd, r1, r2
-                                      Rooms = rms },
-                                    cost x <| 4 + exit
-
-                    if bc = None then
-                        yield
-                            { Hallway = l2, l1, ab, Some x, cd, r1, r2
-                              Rooms = rms },
-                            cost x <| 1 + exit
-
-                        if cd = None then
-                            yield
-                                { Hallway = l2, l1, ab, None, Some x, r1, r2
-                                  Rooms = rms },
-                                cost x <| 3 + exit
-
-                            if r1 = None then
-                                yield
-                                    { Hallway = l2, l1, ab, None, None, Some x, r2
-                                      Rooms = rms },
-                                    cost x <| 5 + exit
-
-                                if r2 = None then
-                                    yield
-                                        { Hallway = l2, l1, ab, None, None, None, Some x
-                                          Rooms = rms },
-                                        cost x <| 6 + exit
-                }
-            | Filling _ -> []
-
-        let fromC =
-            match c with
-            | Initial (x :: rest) ->
-                let rms = a, b, initial C rest, d
-                let exit = n - List.length rest
-
-                seq {
-                    if bc = None then
-                        yield
-                            { Hallway = l2, l1, ab, Some x, cd, r1, r2
-                              Rooms = rms },
-                            cost x <| 1 + exit
-
-                        if ab = None then
-                            yield
-                                { Hallway = l2, l1, Some x, None, cd, r1, r2
-                                  Rooms = rms },
-                                cost x <| 3 + exit
-
-                            if l1 = None then
-                                yield
-                                    { Hallway = l2, Some x, None, None, cd, r1, r2
-                                      Rooms = rms },
-                                    cost x <| 5 + exit
-
-                                if l2 = None then
-                                    yield
-                                        { Hallway = Some x, None, None, None, cd, r1, r2
-                                          Rooms = rms },
-                                        cost x <| 6 + exit
-
-                    if cd = None then
-                        yield
-                            { Hallway = l2, l1, ab, bc, Some x, r1, r2
-                              Rooms = rms },
-                            cost x <| 1 + exit
-
-                        if r1 = None then
-                            yield
-                                { Hallway = l2, l1, ab, bc, None, Some x, r2
-                                  Rooms = rms },
-                                cost x <| 3 + exit
-
-                            if r2 = None then
-                                yield
-                                    { Hallway = l2, l1, ab, bc, None, None, Some x
-                                      Rooms = rms },
-                                    cost x <| 4 + exit
-                }
-            | Filling _ -> []
-
-        let fromD =
-            match d with
-            | Initial (x :: rest) ->
-                let rms = a, b, c, initial D rest
-                let exit = n - List.length rest
-
-                seq {
-                    if cd = None then
-                        yield
-                            { Hallway = l2, l1, ab, bc, Some x, r1, r2
-                              Rooms = rms },
-                            cost x <| 1 + exit
-
-                        if bc = None then
-                            yield
-                                { Hallway = l2, l1, ab, Some x, None, r1, r2
-                                  Rooms = rms },
-                                cost x <| 3 + exit
-
-                            if ab = None then
-                                yield
-                                    { Hallway = l2, l1, Some x, None, None, r1, r2
-                                      Rooms = rms },
-                                    cost x <| 5 + exit
-
-                                if l1 = None then
-                                    yield
-                                        { Hallway = l2, Some x, None, None, None, r1, r2
-                                          Rooms = rms },
-                                        cost x <| 7 + exit
-
-                                    if l2 = None then
-                                        yield
-                                            { Hallway = Some x, None, None, None, None, r1, r2
-                                              Rooms = rms },
-                                            cost x <| 8 + exit
-
-                    if r1 = None then
-                        yield
-                            { Hallway = l2, l1, ab, bc, cd, Some x, r2
-                              Rooms = rms },
-                            cost x <| 1 + exit
-
-                        if r2 = None then
-                            yield
-                                { Hallway = l2, l1, ab, bc, cd, None, Some x
-                                  Rooms = rms },
-                                cost x <| 2 + exit
-                }
-            | Filling _ -> []
-
-        Seq.concat [ fromA
-                     fromB
-                     fromC
-                     fromD ]
+    | _ ->
+        Seq.concat [ movesFromA n p
+                     movesFromB n p
+                     movesFromC n p
+                     movesFromD n p ]
         |> List.ofSeq
-
 
 let parse s =
     let [ one; two ] =
@@ -432,14 +449,16 @@ let expandToPart2 pos =
     { pos with
           Rooms = a |> expandRoom D D, b |> expandRoom C B, c |> expandRoom B A, d |> expandRoom A C }
 
-let dijkstra target moves pos =
+let dijkstra n pos =
+    let target = solved n
+
     let seen = HashSet()
     let Q = PriorityQueue()
     let dist = Dictionary()
+//    let prev = Dictionary()
 
     dist.Add(pos, 0)
     Q.Enqueue(pos, 0)
-    seen.Add(target) |> ignore // to avoid going further from target
 
     while Q.Count > 0 do
         let p = Q.Dequeue()
@@ -449,22 +468,29 @@ let dijkstra target moves pos =
             seen.Add(p) |> ignore
             let d = dist.Item(p)
 
-            let ps = moves p
+            let ps = moves n p
+
             for p', d' in ps do
                 if not <| seen.Contains(p') then
                     let alt = d + d'
-                    let found, prev = dist.TryGetValue(p')
+                    let found, oldD = dist.TryGetValue(p')
 
-                    if not found || prev > alt then
+                    if not found || oldD > alt then
                         Q.Enqueue(p', alt)
-                        dist.Add(p', alt)
+                        dist.[p'] <- alt
+//                        prev.[p'] <- p
 
-    dist.Item(target)
+//    let mutable trace = target
+//    while prev.ContainsKey(trace) do
+//        printfn "%A" trace
+//        printfn "Price %d" dist.[trace]
+//        trace <- prev.[trace] 
+        
+    dist.[target]
 
-let task1 data = dijkstra (solved 2) (moves 2) data
+let task1 = dijkstra 2 
 
-let task2 data =
-    dijkstra (solved 4) (moves 4) (expandToPart2 data)
+let task2 = expandToPart2 >> dijkstra 4
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
