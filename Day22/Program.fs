@@ -1,4 +1,3 @@
-open System.Collections.Generic
 open AoC.Magic
 
 let parseRange (s: string) =
@@ -15,32 +14,73 @@ let parse =
             flip = "on", parseRange xs, parseRange ys, parseRange zs)
 
 let disjunct ((xn1, xx1), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)) =
-    xx1 < xn2 || xn1 > xx2 || yx1 < yn2 || yn1 > yx2 || zx1 < zn2 || zn1 > zx2
+    xx1 < xn2
+    || xn1 > xx2
+    || yx1 < yn2
+    || yn1 > yx2
+    || zx1 < zn2
+    || zn1 > zx2
 
-let task1 data =
-    let map = HashSet()
-    for flip, (xn, xx), (yn, yx), (zn, zx) in data do
-        if not <| disjunct ((xn, xx), (yn, yx), (zn, zx)) ((-50, 50), (-50, 50), (-50, 50)) then 
-            for x in (max xn -50) ..(min xx 50) do 
-                for y in (max yn -50) ..(min yx 50) do 
-                    for z in (max zn -50) ..(min zx 50) do
-                        if flip then
-                            map.Add((x, y, z)) |> ignore
-                        else
-                            map.Remove((x, y, z)) |> ignore
-    map.Count |> int64
+let clip ((xn, xx), (yn, yx), (zn, zx)) =
+    if disjunct ((xn, xx), (yn, yx), (zn, zx)) ((-50, 50), (-50, 50), (-50, 50)) then
+        None
+    else
+        Some
+        <| (((max xn -50), (min xx 50)), ((max yn -50), (min yx 50)), ((max zn -50), (min zx 50)))
 
 
-let subtract ((xn1, xx1), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)) =
+let rec subtract ((xn1, xx1), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)) =
     if disjunct ((xn1, xx1), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)) then
         [ (xn1, xx1), (yn1, yx1), (zn1, zx1) ]
+    else if xn1 < xn2 then
+        ((xn1, xn2 - 1), (yn1, yx1), (zn1, zx1))
+        :: (subtract ((xn2, xx1), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)))
+    else if xx1 > xx2 then
+        ((xx2 + 1, xx1), (yn1, yx1), (zn1, zx1))
+        :: (subtract ((xn1, xx2), (yn1, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)))
+    else if yn1 < yn2 then
+        ((xn1, xx1), (yn1, yn2 - 1), (zn1, zx1))
+        :: (subtract ((xn1, xx1), (yn2, yx1), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)))
+    else if yx1 > yx2 then
+        ((xn1, xx1), (yx2 + 1, yx1), (zn1, zx1))
+        :: (subtract ((xn1, xx1), (yn1, yx2), (zn1, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)))
+    else if zn1 < zn2 then
+        ((xn1, xx1), (yn1, yx1), (zn1, zn2 - 1))
+        :: (subtract ((xn1, xx1), (yn1, yx1), (zn2, zx1)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)))
+    else if zx1 > zx2 then
+        ((xn1, xx1), (yn1, yx1), (zx2 + 1, zx1))
+        :: (subtract ((xn1, xx1), (yn1, yx1), (zn1, zx2)) ((xn2, xx2), (yn2, yx2), (zn2, zx2)))
     else
         []
 
-let add a b =
-    List.append [ a ] (subtract a b) 
+let rec plus cs (flip, xs, ys, zs) =
+    let cuboid = (xs, ys, zs)
 
-let task2 data = -2L
+    let without =
+        cs |> Seq.collect (fun c -> subtract c cuboid)
+
+    if flip then
+        Seq.append [ cuboid ] without
+    else
+        without
+
+let volume ((xn, xx), (yn, yx), (zn, zx)) =
+    (int64 <| xx - xn + 1)
+    * (int64 <| yx - yn + 1)
+    * (int64 <| zx - zn + 1)
+
+let task2 cmds =
+    cmds
+    |> Seq.fold plus []
+    |> Seq.map volume
+    |> Seq.sum
+
+let task1 =
+    Seq.choose
+        (fun (flip, xs, ys, zs) ->
+            clip (xs, ys, zs)
+            |> Option.map (fun (xs, ys, zs) -> flip, xs, ys, zs))
+    >> task2
 
 let fullTask1 = parse >> task1
 let fullTask2 = parse >> task2
@@ -108,6 +148,18 @@ off x=-70369..-16548,y=22648..78696,z=-1892..86821
 on x=-53470..21291,y=-120233..-33476,z=-44150..38147
 off x=-93533..-4276,y=-16170..68771,z=-104985..-24507"
 
+let smallTest =
+    "\
+on x=10..12,y=10..12,z=10..12
+on x=11..13,y=11..13,z=11..13
+off x=9..11,y=9..11,z=9..11
+on x=10..10,y=10..10,z=10..10"
+
+let smallTestAnswer = 39
+
+let smallTestResult = smallTest |> fullTask1
+assert (smallTestResult = smallTestAnswer)
+
 let testAnswer1 = 474140L
 let testAnswer2 = 2758514936282235L
 let result1 = testInput |> fullTask1
@@ -116,5 +168,7 @@ let result2 = testInput |> fullTask2
 assert (result2 = testAnswer2)
 
 let realInput = taskInput 2021 22
-printfn $"Day 22.1: {realInput |> fullTask1}"
+let realAnswer1 = realInput |> fullTask1
+assert (realAnswer1 = 583641)
+printfn $"Day 22.1: {realAnswer1}"
 printfn $"Day 22.2: {realInput |> fullTask2}"
